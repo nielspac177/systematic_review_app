@@ -1,0 +1,39 @@
+# Systematic Review Application Dependencies
+
+# Web Framework
+streamlit>=1.30.0
+
+# LLM Providers
+openai>=1.10.0
+anthropic>=0.18.0
+tiktoken>=0.5.0  # Token counting for OpenAI
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.22.4
+pydantic>=2.0.0
+
+# PDF Processing
+PyPDF2>=3.0.0
+pdf2image>=1.17.0
+pytesseract>=0.3.10
+
+# Image Processing (for OCR)
+opencv-python>=4.6.0
+Pillow>=9.0.0
+
+# Excel Export
+openpyxl>=3.1.0
+
+# Environment Configuration
+python-dotenv>=1.0.0
+
+# Utilities
+tqdm>=4.65.0  # Progress bars (for CLI usage)
+fuzzywuzzy>=0.18.0  # Fuzzy string matching
+
+# Optional: For development
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# flake8>=6.0.0
