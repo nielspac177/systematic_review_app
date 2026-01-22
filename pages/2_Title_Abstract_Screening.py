@@ -23,6 +23,7 @@ from core.screening import TitleAbstractScreener
 from components.prisma_diagram import render_prisma_mini, update_prisma_counts
 from components.progress_bar import ProgressTracker
 from components.cost_display import render_cost_estimate, render_cost_confirmation, render_cost_summary_card
+from components.reference_import import render_reference_import, convert_references_to_dataframe
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -70,6 +71,14 @@ def init_session_state():
         st.session_state.studies_hash = None
     if "screened_study_ids" not in st.session_state:
         st.session_state.screened_study_ids = set()
+
+    # Reference import tracking
+    if "import_sources" not in st.session_state:
+        st.session_state.import_sources = None
+    if "import_dedup_count" not in st.session_state:
+        st.session_state.import_dedup_count = None
+    if "removed_ref_ids" not in st.session_state:
+        st.session_state.removed_ref_ids = set()
 
 
 def render_sidebar():
@@ -362,9 +371,20 @@ def run_screening():
         project.prisma_counts.records_excluded_screening = stats["excluded"]
         project.prisma_counts.reports_sought = stats["included"]
 
+        # Track duplicates removed if from import
+        if st.session_state.get("import_dedup_count"):
+            project.prisma_counts.records_removed_duplicates = st.session_state.import_dedup_count
+
         # Update exclusion reasons
         for reason, count in stats["exclusion_by_category"].items():
             project.prisma_counts.exclusion_reasons[f"screening_{reason}"] = count
+
+        # Store source database tracking for PRISMA reporting
+        if st.session_state.get("import_sources"):
+            # Store records per database in exclusion_reasons dict for now
+            # (PRISMACounts model could be extended to have a dedicated field)
+            for db, count in st.session_state.import_sources.items():
+                project.prisma_counts.exclusion_reasons[f"source_{db}"] = count
 
         # Save project
         if st.session_state.session_manager:
@@ -527,17 +547,17 @@ def main():
     # Check prerequisites
     if not st.session_state.get("current_project"):
         st.warning("⚠️ Please set up a project first in the Setup page.")
-        st.page_link("pages/1_Setup_Review.py", label="Go to Setup", icon="📋")
+        st.page_link("pages/0_Setup_Review.py", label="Go to Setup", icon="📋")
         return
 
     if not st.session_state.current_project.criteria:
         st.warning("⚠️ Please generate criteria first in the Setup page.")
-        st.page_link("pages/1_Setup_Review.py", label="Go to Setup", icon="📋")
+        st.page_link("pages/0_Setup_Review.py", label="Go to Setup", icon="📋")
         return
 
     if not st.session_state.get("llm_client"):
         st.warning("⚠️ Please configure LLM settings in the Setup page.")
-        st.page_link("pages/1_Setup_Review.py", label="Go to Setup", icon="📋")
+        st.page_link("pages/0_Setup_Review.py", label="Go to Setup", icon="📋")
         return
 
     # Show results if screening is complete
@@ -552,6 +572,8 @@ def main():
             st.session_state.uploaded_studies = None
             st.session_state.studies_hash = None
             st.session_state.screened_study_ids = set()
+            st.session_state.removed_ref_ids = set()
+            st.session_state.import_sources = None
             # Clear the screener's decision cache
             if st.session_state.screener_instance:
                 cleared = st.session_state.screener_instance.clear_cache()
@@ -568,8 +590,34 @@ def main():
         """)
         return
 
-    # File upload
-    has_data = render_file_upload()
+    # Two tabs: existing CSV upload + new reference import
+    tab1, tab2 = st.tabs(["Upload CSV", "Import from Database Export"])
+
+    has_data = False
+
+    with tab1:
+        # Existing CSV upload logic
+        has_data = render_file_upload()
+
+    with tab2:
+        # New reference import from database exports
+        import_result = render_reference_import()
+        if import_result:
+            unique_refs, dedup_result = import_result
+
+            # Convert to DataFrame for existing workflow
+            df = convert_references_to_dataframe(unique_refs)
+            st.session_state.uploaded_studies = df
+            st.session_state.column_mapping = {
+                "title": "Title",
+                "abstract": "Abstract",
+                "pmid": "PMID",
+                "doi": "DOI"
+            }
+            # Store source tracking for PRISMA reporting
+            st.session_state.import_sources = dedup_result.records_per_source
+            st.session_state.import_dedup_count = dedup_result.duplicate_count
+            has_data = True
 
     if has_data:
         st.divider()

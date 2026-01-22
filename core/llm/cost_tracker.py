@@ -16,6 +16,11 @@ class OperationType(str, Enum):
     DATA_EXTRACTION = "data_extraction"
     RISK_OF_BIAS = "risk_of_bias"
     TRANSLATION = "translation"
+    # Search strategy operations
+    PICO_ANALYSIS = "pico_analysis"
+    PUBMED_GENERATION = "pubmed_generation"
+    DATABASE_TRANSLATION = "database_translation"
+    SYNTAX_VALIDATION = "syntax_validation"
     OTHER = "other"
 
 
@@ -68,6 +73,11 @@ class CostTracker:
         OperationType.DATA_EXTRACTION: {"input": 3000, "output": 500},
         OperationType.RISK_OF_BIAS: {"input": 3000, "output": 400},
         OperationType.TRANSLATION: {"input": 500, "output": 500},
+        # Search strategy operations
+        OperationType.PICO_ANALYSIS: {"input": 300, "output": 800},
+        OperationType.PUBMED_GENERATION: {"input": 500, "output": 600},
+        OperationType.DATABASE_TRANSLATION: {"input": 400, "output": 500},
+        OperationType.SYNTAX_VALIDATION: {"input": 300, "output": 200},
     }
 
     def __init__(self, budget_limit: Optional[float] = None):

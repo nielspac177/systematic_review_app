@@ -35,6 +35,6 @@ def get_llm_client(provider: str, api_key: str, model: str = None) -> BaseLLMCli
     if provider.lower() == "openai":
         return OpenAIClient(api_key=api_key, model=model or "gpt-4o")
     elif provider.lower() == "anthropic":
-        return AnthropicClient(api_key=api_key, model=model or "claude-3-5-sonnet-20241022")
+        return AnthropicClient(api_key=api_key, model=model or "claude-sonnet-4-20250514")
     else:
         raise ValueError(f"Unknown provider: {provider}. Choose 'openai' or 'anthropic'")

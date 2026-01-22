@@ -153,25 +153,60 @@ def render_llm_configuration():
         provider = st.selectbox(
             "LLM Provider",
             options=["openai", "anthropic"],
-            format_func=lambda x: "OpenAI (GPT-4)" if x == "openai" else "Anthropic (Claude)"
+            format_func=lambda x: "OpenAI (GPT-5/GPT-4)" if x == "openai" else "Anthropic (Claude)"
         )
 
     with col2:
         if provider == "openai":
             model = st.selectbox(
                 "Model",
-                options=["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
-                index=0
+                options=[
+                    "gpt-5.2-pro",
+                    "gpt-5.2",
+                    "gpt-5",
+                    "gpt-5-mini",
+                    "gpt-5-nano",
+                    "gpt-4.1",
+                    "gpt-4o",
+                    "gpt-4o-mini",
+                    "gpt-4-turbo",
+                    "gpt-3.5-turbo",
+                ],
+                index=6,  # Default to gpt-4o
+                format_func=lambda x: {
+                    "gpt-5.2-pro": "GPT-5.2 Pro (Most capable)",
+                    "gpt-5.2": "GPT-5.2",
+                    "gpt-5": "GPT-5",
+                    "gpt-5-mini": "GPT-5 Mini (Fast & affordable)",
+                    "gpt-5-nano": "GPT-5 Nano (Fastest & cheapest)",
+                    "gpt-4.1": "GPT-4.1",
+                    "gpt-4o": "GPT-4o",
+                    "gpt-4o-mini": "GPT-4o Mini",
+                    "gpt-4-turbo": "GPT-4 Turbo",
+                    "gpt-3.5-turbo": "GPT-3.5 Turbo",
+                }.get(x, x)
             )
         else:
             model = st.selectbox(
                 "Model",
                 options=[
-                    "claude-3-5-sonnet-20241022",
-                    "claude-3-opus-20240229",
-                    "claude-3-haiku-20240307"
+                    "claude-sonnet-4-20250514",
+                    "claude-opus-4-20250514",
+                    "claude-3-7-sonnet-latest",
+                    "claude-3-5-sonnet-latest",
+                    "claude-3-5-haiku-latest",
+                    "claude-3-opus-latest",
+                    "claude-3-haiku-20240307",
                 ],
-                format_func=lambda x: x.replace("-20241022", "").replace("-20240229", "").replace("-20240307", "")
+                format_func=lambda x: {
+                    "claude-sonnet-4-20250514": "Claude Sonnet 4 (Recommended)",
+                    "claude-opus-4-20250514": "Claude Opus 4 (Most capable)",
+                    "claude-3-7-sonnet-latest": "Claude 3.7 Sonnet",
+                    "claude-3-5-sonnet-latest": "Claude 3.5 Sonnet",
+                    "claude-3-5-haiku-latest": "Claude 3.5 Haiku (Fast)",
+                    "claude-3-opus-latest": "Claude 3 Opus",
+                    "claude-3-haiku-20240307": "Claude 3 Haiku (Cheapest)",
+                }.get(x, x)
             )
 
     # API Key input

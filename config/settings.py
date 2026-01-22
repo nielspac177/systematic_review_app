@@ -16,7 +16,7 @@ class LLMSettings:
 
     # Anthropic
     anthropic_api_key: Optional[str] = None
-    anthropic_default_model: str = "claude-3-5-sonnet-20241022"
+    anthropic_default_model: str = "claude-sonnet-4-20250514"
 
     # Defaults
     default_temperature: float = 0.3
@@ -108,17 +108,30 @@ def get_settings() -> Settings:
 
 # Model pricing information
 MODEL_PRICING = {
-    # OpenAI (per 1M tokens)
+    # OpenAI GPT-5 series (per 1M tokens)
+    "gpt-5.2-pro": {"input": 15.00, "output": 60.00},
+    "gpt-5.2": {"input": 10.00, "output": 40.00},
+    "gpt-5": {"input": 8.00, "output": 32.00},
+    "gpt-5-mini": {"input": 1.00, "output": 4.00},
+    "gpt-5-nano": {"input": 0.25, "output": 1.00},
+    # OpenAI GPT-4 series (per 1M tokens)
+    "gpt-4.1": {"input": 6.00, "output": 18.00},
     "gpt-4o": {"input": 5.00, "output": 15.00},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "gpt-4": {"input": 30.00, "output": 60.00},
     "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
 
-    # Anthropic (per 1M tokens)
-    "claude-3-5-sonnet-20241022": {"input": 3.00, "output": 15.00},
-    "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
-    "claude-3-sonnet-20240229": {"input": 3.00, "output": 15.00},
+    # Anthropic Claude 4 series (per 1M tokens)
+    "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
+    "claude-opus-4-20250514": {"input": 15.00, "output": 75.00},
+    # Anthropic Claude 3.7 series
+    "claude-3-7-sonnet-latest": {"input": 3.00, "output": 15.00},
+    # Anthropic Claude 3.5 series
+    "claude-3-5-sonnet-latest": {"input": 3.00, "output": 15.00},
+    "claude-3-5-haiku-latest": {"input": 0.80, "output": 4.00},
+    # Anthropic Claude 3 series
+    "claude-3-opus-latest": {"input": 15.00, "output": 75.00},
     "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
 }
 

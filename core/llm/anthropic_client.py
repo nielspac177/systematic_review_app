@@ -8,10 +8,20 @@ import anthropic
 from .base_client import BaseLLMClient, LLMResponse
 
 
-# Pricing per 1M tokens (as of 2024)
+# Pricing per 1M tokens
 ANTHROPIC_PRICING = {
+    # Claude 4 series
+    "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
+    "claude-opus-4-20250514": {"input": 15.00, "output": 75.00},
+    # Claude 3.7 series
+    "claude-3-7-sonnet-20250219": {"input": 3.00, "output": 15.00},
+    "claude-3-7-sonnet-latest": {"input": 3.00, "output": 15.00},
+    # Claude 3.5 series
     "claude-3-5-sonnet-20241022": {"input": 3.00, "output": 15.00},
     "claude-3-5-sonnet-latest": {"input": 3.00, "output": 15.00},
+    "claude-3-5-haiku-20241022": {"input": 0.80, "output": 4.00},
+    "claude-3-5-haiku-latest": {"input": 0.80, "output": 4.00},
+    # Claude 3 series
     "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
     "claude-3-opus-latest": {"input": 15.00, "output": 75.00},
     "claude-3-sonnet-20240229": {"input": 3.00, "output": 15.00},
@@ -23,8 +33,18 @@ class AnthropicClient(BaseLLMClient):
     """Anthropic API client for Claude models."""
 
     SUPPORTED_MODELS = [
+        # Claude 4 series
+        "claude-sonnet-4-20250514",
+        "claude-opus-4-20250514",
+        # Claude 3.7 series
+        "claude-3-7-sonnet-20250219",
+        "claude-3-7-sonnet-latest",
+        # Claude 3.5 series
         "claude-3-5-sonnet-20241022",
         "claude-3-5-sonnet-latest",
+        "claude-3-5-haiku-20241022",
+        "claude-3-5-haiku-latest",
+        # Claude 3 series
         "claude-3-opus-20240229",
         "claude-3-opus-latest",
         "claude-3-sonnet-20240229",
@@ -34,13 +54,13 @@ class AnthropicClient(BaseLLMClient):
     # Average characters per token for Claude (approximation)
     CHARS_PER_TOKEN = 4.0
 
-    def __init__(self, api_key: str, model: str = "claude-3-5-sonnet-20241022"):
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-20250514"):
         """
         Initialize Anthropic client.
 
         Args:
             api_key: Anthropic API key
-            model: Model to use (default: claude-3-5-sonnet-20241022)
+            model: Model to use (default: claude-sonnet-4-20250514)
         """
         super().__init__(api_key, model)
         if model not in self.SUPPORTED_MODELS:
@@ -128,7 +148,7 @@ class AnthropicClient(BaseLLMClient):
             Estimated cost in USD
         """
         pricing = ANTHROPIC_PRICING.get(
-            self.model, ANTHROPIC_PRICING["claude-3-5-sonnet-20241022"]
+            self.model, ANTHROPIC_PRICING["claude-sonnet-4-20250514"]
         )
         input_cost = (input_tokens / 1_000_000) * pricing["input"]
         output_cost = (output_tokens / 1_000_000) * pricing["output"]

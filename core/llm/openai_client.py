@@ -13,8 +13,16 @@ from .base_client import BaseLLMClient, LLMResponse
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Pricing per 1M tokens (as of 2024)
+# Pricing per 1M tokens
 OPENAI_PRICING = {
+    # GPT-5 series
+    "gpt-5.2-pro": {"input": 15.00, "output": 60.00},
+    "gpt-5.2": {"input": 10.00, "output": 40.00},
+    "gpt-5": {"input": 8.00, "output": 32.00},
+    "gpt-5-mini": {"input": 1.00, "output": 4.00},
+    "gpt-5-nano": {"input": 0.25, "output": 1.00},
+    # GPT-4 series
+    "gpt-4.1": {"input": 6.00, "output": 18.00},
     "gpt-4o": {"input": 5.00, "output": 15.00},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
@@ -41,6 +49,14 @@ class OpenAIClient(BaseLLMClient):
     """OpenAI API client - simple and fast with retry on rate limit."""
 
     SUPPORTED_MODELS = [
+        # GPT-5 series
+        "gpt-5.2-pro",
+        "gpt-5.2",
+        "gpt-5",
+        "gpt-5-mini",
+        "gpt-5-nano",
+        # GPT-4 series
+        "gpt-4.1",
         "gpt-4o",
         "gpt-4o-mini",
         "gpt-4-turbo",

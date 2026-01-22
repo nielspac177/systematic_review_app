@@ -19,6 +19,14 @@ from .storage import (
     ReviewCriteria,
     PRISMACounts,
 )
+from .storage.models import (
+    PICOElement,
+    ConceptBlock,
+    SearchStrategy,
+    ParsedReference,
+    DeduplicationResult,
+    WizardState,
+)
 from .screening import (
     CriteriaGenerator,
     TitleAbstractScreener,
@@ -32,6 +40,21 @@ from .extraction import (
 from .pdf import (
     PDFProcessor,
     PDFBatchProcessor,
+)
+from .search_strategy import (
+    PICOAnalyzer,
+    ConceptBuilder,
+    PubMedGenerator,
+    DatabaseTranslator,
+    SyntaxValidator,
+)
+from .file_parsers import (
+    RISParser,
+    NBIBParser,
+    Deduplicator,
+)
+from .export import (
+    DOCXGenerator,
 )
 
 __all__ = [
@@ -52,6 +75,13 @@ __all__ = [
     "StudyExtraction",
     "ReviewCriteria",
     "PRISMACounts",
+    # Search Strategy Models
+    "PICOElement",
+    "ConceptBlock",
+    "SearchStrategy",
+    "ParsedReference",
+    "DeduplicationResult",
+    "WizardState",
     # Screening
     "CriteriaGenerator",
     "TitleAbstractScreener",
@@ -63,4 +93,16 @@ __all__ = [
     # PDF
     "PDFProcessor",
     "PDFBatchProcessor",
+    # Search Strategy
+    "PICOAnalyzer",
+    "ConceptBuilder",
+    "PubMedGenerator",
+    "DatabaseTranslator",
+    "SyntaxValidator",
+    # File Parsers
+    "RISParser",
+    "NBIBParser",
+    "Deduplicator",
+    # Export
+    "DOCXGenerator",
 ]

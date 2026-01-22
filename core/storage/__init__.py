@@ -15,9 +15,28 @@ from .models import (
     PRISMACounts,
     Project,
     AuditEntry,
+    # Legacy RoB models
     RoBDomain,
     RoBJudgment,
     StudyRoB,
+    # New RoB models
+    RoBToolType,
+    JudgmentLevel,
+    SignalingQuestion,
+    RoBDomainTemplate,
+    RoBTemplate,
+    SignalingQuestionResponse,
+    RoBDomainJudgment,
+    StudyRoBAssessment,
+    RoBProjectSettings,
+    RoBAuditEntry,
+    # Search Strategy models
+    PICOElement,
+    ConceptBlock,
+    SearchStrategy,
+    ParsedReference,
+    DeduplicationResult,
+    WizardState,
 )
 from .session_manager import SessionManager
 from .audit_logger import AuditLogger
@@ -43,10 +62,28 @@ __all__ = [
     "Project",
     # Audit models
     "AuditEntry",
-    # Risk of Bias models
+    # Risk of Bias models (legacy)
     "RoBDomain",
     "RoBJudgment",
     "StudyRoB",
+    # Risk of Bias models (new)
+    "RoBToolType",
+    "JudgmentLevel",
+    "SignalingQuestion",
+    "RoBDomainTemplate",
+    "RoBTemplate",
+    "SignalingQuestionResponse",
+    "RoBDomainJudgment",
+    "StudyRoBAssessment",
+    "RoBProjectSettings",
+    "RoBAuditEntry",
+    # Search Strategy models
+    "PICOElement",
+    "ConceptBlock",
+    "SearchStrategy",
+    "ParsedReference",
+    "DeduplicationResult",
+    "WizardState",
     # Managers
     "SessionManager",
     "AuditLogger",
