@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReviewPyPer - Systematic Review App</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --sidebar-bg: #1e293b;
+  --sidebar-text: #e2e8f0;
+  --sidebar-active: #3b82f6;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); display:flex; min-height:100vh; }
+
+/* Sidebar */
+.sidebar { width:260px; background:var(--sidebar-bg); color:var(--sidebar-text); padding:20px 0; flex-shrink:0; display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; }
+.sidebar h1 { padding:0 20px 20px; font-size:1.3rem; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px; }
+.sidebar h1 span { font-size:1.6rem; }
+.nav-item { padding:12px 20px; cursor:pointer; display:flex; align-items:center; gap:10px; font-size:0.9rem; transition:background 0.2s; border-left:3px solid transparent; }
+.nav-item:hover { background:rgba(255,255,255,0.05); }
+.nav-item.active { background:rgba(59,130,246,0.15); border-left-color:var(--sidebar-active); color:white; }
+.nav-item.disabled { opacity:0.4; pointer-events:none; }
+.nav-item .num { background:rgba(255,255,255,0.15); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0; }
+.nav-item.completed .num { background:var(--success); }
+.sidebar-footer { margin-top:auto; padding:15px 20px; font-size:0.75rem; opacity:0.5; border-top:1px solid rgba(255,255,255,0.1); }
+
+/* Main content */
+.main { margin-left:260px; flex:1; padding:30px 40px; max-width:1100px; }
+.page-title { font-size:1.5rem; font-weight:700; margin-bottom:5px; }
+.page-subtitle { color:var(--text-muted); margin-bottom:25px; font-size:0.95rem; }
+
+/* Cards */
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:24px; margin-bottom:20px; }
+.card h3 { font-size:1.05rem; margin-bottom:12px; }
+.card-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* Form elements */
+label { display:block; font-weight:600; font-size:0.85rem; margin-bottom:4px; color:var(--text); }
+.help-text { font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; }
+input[type="text"], input[type="password"], input[type="number"], select, textarea {
+  width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.9rem;
+  font-family:inherit; background:white; transition:border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+textarea { resize:vertical; min-height:80px; }
+
+/* Buttons */
+.btn { padding:10px 20px; border:none; border-radius:6px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--primary); color:white; }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-success { background:var(--success); color:white; }
+.btn-success:hover { background:#15803d; }
+.btn-warning { background:var(--warning); color:white; }
+.btn-danger { background:var(--danger); color:white; }
+.btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+.btn-outline:hover { background:var(--bg); }
+.btn-sm { padding:6px 12px; font-size:0.8rem; }
+.btn:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-group { display:flex; gap:10px; margin-top:15px; }
+
+/* Tables */
+table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); }
+th { background:var(--bg); font-weight:600; position:sticky; top:0; }
+.table-wrap { max-height:500px; overflow:auto; border:1px solid var(--border); border-radius:6px; }
+
+/* Badges */
+.badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; }
+.badge-success { background:#dcfce7; color:#166534; }
+.badge-danger { background:#fee2e2; color:#991b1b; }
+.badge-warning { background:#fef3c7; color:#92400e; }
+.badge-info { background:#dbeafe; color:#1e40af; }
+
+/* Progress */
+.progress-bar { width:100%; height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin:8px 0; }
+.progress-fill { height:100%; background:var(--primary); border-radius:4px; transition:width 0.3s; }
+
+/* Stats row */
+.stats-row { display:flex; gap:16px; margin-bottom:20px; }
+.stat-card { flex:1; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; text-align:center; }
+.stat-card .value { font-size:1.8rem; font-weight:700; color:var(--primary); }
+.stat-card .label { font-size:0.8rem; color:var(--text-muted); margin-top:2px; }
+
+/* Alert */
+.alert { padding:12px 16px; border-radius:6px; margin-bottom:16px; font-size:0.9rem; }
+.alert-info { background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; }
+.alert-success { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+.alert-warning { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
+.alert-danger { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+
+/* Tabs */
+.tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; }
+.tab { padding:10px 20px; cursor:pointer; font-weight:600; font-size:0.9rem; color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+.tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* PICO display */
+.pico-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.pico-item { background:var(--bg); border-radius:6px; padding:12px; }
+.pico-item .pico-label { font-weight:700; font-size:0.8rem; text-transform:uppercase; color:var(--primary); margin-bottom:4px; }
+
+/* Loading spinner */
+.spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-radius:50%; border-top-color:white; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.loading-box { background:white; padding:30px 40px; border-radius:10px; text-align:center; }
+.loading-box .spinner { border-color:rgba(37,99,235,0.2); border-top-color:var(--primary); width:40px; height:40px; margin-bottom:15px; }
+
+/* PRISMA diagram */
+.prisma { text-align:center; }
+.prisma-box { display:inline-block; background:white; border:2px solid var(--primary); border-radius:8px; padding:12px 20px; margin:5px; min-width:180px; }
+.prisma-box .prisma-count { font-size:1.3rem; font-weight:700; color:var(--primary); }
+.prisma-box .prisma-label { font-size:0.8rem; color:var(--text-muted); }
+.prisma-arrow { font-size:1.5rem; color:var(--text-muted); }
+
+/* File upload area */
+.upload-area { border:2px dashed var(--border); border-radius:8px; padding:30px; text-align:center; cursor:pointer; transition:border-color 0.2s; }
+.upload-area:hover { border-color:var(--primary); }
+.upload-area input { display:none; }
+
+/* RoB traffic light */
+.rob-cell { width:28px; height:28px; border-radius:50%; display:inline-block; margin:2px; }
+.rob-low { background:#16a34a; }
+.rob-some { background:#eab308; }
+.rob-high { background:#dc2626; }
+.rob-unclear { background:#9ca3af; }
+
+/* Modal */
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal { background:white; border-radius:12px; padding:30px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; }
+.modal h2 { margin-bottom:15px; }
+
+/* Responsive */
+@media (max-width:900px) {
+  .sidebar { width:60px; }
+  .sidebar h1, .nav-item span, .sidebar-footer { display:none; }
+  .nav-item { justify-content:center; padding:12px; }
+  .main { margin-left:60px; padding:20px; }
+  .card-grid, .pico-grid { grid-template-columns:1fr; }
+  .stats-row { flex-wrap:wrap; }
+}
+
+/* Criteria editor */
+.criteria-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.criteria-item input { flex:1; }
+.criteria-remove { background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.1rem; padding:4px; }
+
+/* Extraction fields editor */
+.field-row { display:grid; grid-template-columns:1fr 2fr 120px 40px; gap:8px; margin-bottom:6px; align-items:center; }
+
+/* Cost display */
+.cost-card { background:linear-gradient(135deg, #dbeafe, #ede9fe); border:none; }
+.cost-value { font-size:1.2rem; font-weight:700; color:var(--primary); }
+/* PDF queue */
+.pdf-queue { margin-top:12px; }
+.pdf-queue-item { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--bg); border-radius:6px; margin-bottom:6px; font-size:0.85rem; }
+.pdf-queue-item .pdf-name { flex:1; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pdf-queue-item .pdf-status { font-size:0.8rem; color:var(--text-muted); }
+.pdf-queue-item .pdf-status.done { color:var(--success); }
+.pdf-queue-item .pdf-status.error { color:var(--danger); }
+.pdf-queue-item .pdf-status.ocr { color:var(--warning); }
+.pdf-chars { font-size:0.75rem; color:var(--text-muted); }
+</style>
+
+<!-- PDF.js for text-based PDF extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+</script>
+
+<!-- Tesseract.js for OCR on scanned PDFs -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+<!-- Sidebar Navigation -->
+<nav class="sidebar">
+  <h1><span>📚</span> ReviewPyPer</h1>
+  <div id="nav-items"></div>
+  <div class="sidebar-footer">ReviewPyPer v1.0<br>Standalone HTML Edition</div>
+</nav>
+
+<!-- Main Content -->
+<div class="main" id="main-content"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading" style="display:none">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div id="loading-text">Processing...</div>
+    <div id="loading-progress" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// APP STATE
+// ============================================================================
+const APP = {
+  currentPage: 0,
+  project: null,
+  apiKey: '',
+  apiProvider: 'openai',
+  model: 'gpt-4o',
+  studies: [],
+  screeningResults: [],
+  fulltextResults: [],
+  extractionFields: [],
+  extractions: [],
+  robAssessments: [],
+  robTool: 'rob_2',
+  costTotal: 0,
+  searchStrategy: null,
+  processedPDFs: [],
+};
+
+const PAGES = [
+  { name: 'Setup Review', icon: '⚙️' },
+  { name: 'Search Strategy', icon: '🔍' },
+  { name: 'Title/Abstract Screening', icon: '📋' },
+  { name: 'Full-text Screening', icon: '📄' },
+  { name: 'Feedback Review', icon: '🔄' },
+  { name: 'Extraction Setup', icon: '📊' },
+  { name: 'Data Extraction', icon: '🗃️' },
+  { name: 'RoB Setup', icon: '⚖️' },
+  { name: 'Risk of Bias', icon: '🚦' },
+];
+
+// ============================================================================
+// MODEL PRICING (per 1M tokens)
+// ============================================================================
+const PRICING = {
+  'gpt-4o': { input: 5, output: 15 },
+  'gpt-4o-mini': { input: 0.15, output: 0.60 },
+  'gpt-4-turbo': { input: 10, output: 30 },
+  'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
+  'gpt-4.1': { input: 6, output: 18 },
+  'gpt-5': { input: 8, output: 32 },
+  'gpt-5-mini': { input: 1, output: 4 },
+  'claude-sonnet-4-20250514': { input: 3, output: 15 },
+  'claude-opus-4-20250514': { input: 15, output: 75 },
+  'claude-3-5-sonnet-latest': { input: 3, output: 15 },
+  'claude-3-5-haiku-latest': { input: 0.80, output: 4 },
+  'claude-3-haiku-20240307': { input: 0.25, output: 1.25 },
+};
+
+const OPENAI_MODELS = ['gpt-4o','gpt-4o-mini','gpt-4.1','gpt-4-turbo','gpt-3.5-turbo','gpt-5','gpt-5-mini'];
+const ANTHROPIC_MODELS = ['claude-sonnet-4-20250514','claude-opus-4-20250514','claude-3-5-sonnet-latest','claude-3-5-haiku-latest','claude-3-haiku-20240307'];
+
+// ============================================================================
+// PERSISTENCE (localStorage)
+// ============================================================================
+function saveState() {
+  try {
+    const s = { ...APP };
+    delete s.apiKey; // never persist API key
+    // Save PDF metadata only (not full text, which is too large for localStorage)
+    s.processedPDFs = (s.processedPDFs || []).map(p => ({
+      filename: p.filename, title: p.title, method: p.method,
+      chars: p.chars, pages: p.pages, error: p.error,
+      // Truncate text for storage - keep first 500 chars as preview
+      textPreview: (p.text || '').substring(0, 500),
+      hasText: !!(p.text && p.text.length > 100),
+    }));
+    localStorage.setItem('reviewpyper_state', JSON.stringify(s));
+  } catch(e) { console.warn('Save failed', e); }
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('reviewpyper_state'));
+    if (s) Object.assign(APP, s);
+  } catch(e) {}
+}
+
+// ============================================================================
+// LLM API CALLS
+// ============================================================================
+async function callLLM(messages, { temperature = 0.3, maxTokens = 1000, jsonMode = false } = {}) {
+  if (!APP.apiKey) throw new Error('API key not configured');
+
+  if (APP.apiProvider === 'openai') {
+    return callOpenAI(messages, temperature, maxTokens, jsonMode);
+  } else {
+    return callAnthropic(messages, temperature, maxTokens, jsonMode);
+  }
+}
+
+async function callOpenAI(messages, temperature, maxTokens, jsonMode) {
+  const body = {
+    model: APP.model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  };
+  if (jsonMode) body.response_format = { type: 'json_object' };
+
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${APP.apiKey}` },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `OpenAI API error ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const usage = data.usage || {};
+  const pricing = PRICING[APP.model] || PRICING['gpt-4o'];
+  const cost = (usage.prompt_tokens || 0) / 1e6 * pricing.input + (usage.completion_tokens || 0) / 1e6 * pricing.output;
+  APP.costTotal += cost;
+
+  return {
+    content: data.choices[0].message.content,
+    inputTokens: usage.prompt_tokens || 0,
+    outputTokens: usage.completion_tokens || 0,
+    cost,
+  };
+}
+
+async function callAnthropic(messages, temperature, maxTokens, jsonMode) {
+  // Anthropic uses system separately
+  let system = '';
+  const msgs = [];
+  for (const m of messages) {
+    if (m.role === 'system') { system += m.content + '\n'; }
+    else { msgs.push({ role: m.role, content: m.content }); }
+  }
+  if (jsonMode) system += '\nYou must respond with valid JSON only.';
+
+  const body = {
+    model: APP.model,
+    max_tokens: maxTokens,
+    temperature,
+    messages: msgs,
+  };
+  if (system.trim()) body.system = system.trim();
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': APP.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Anthropic API error ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const content = data.content.map(c => c.text).join('');
+  const usage = data.usage || {};
+  const pricing = PRICING[APP.model] || PRICING['claude-3-5-sonnet-latest'];
+  const cost = (usage.input_tokens || 0) / 1e6 * pricing.input + (usage.output_tokens || 0) / 1e6 * pricing.output;
+  APP.costTotal += cost;
+
+  return { content, inputTokens: usage.input_tokens || 0, outputTokens: usage.output_tokens || 0, cost };
+}
+
+function parseLLMJson(content) {
+  try { return JSON.parse(content); }
+  catch(e) {
+    const m = content.match(/\{[\s\S]*\}/);
+    if (m) try { return JSON.parse(m[0]); } catch(e2) {}
+    return null;
+  }
+}
+
+// ============================================================================
+// FILE PARSERS
+// ============================================================================
+function parseCSV(text) {
+  const lines = text.split('\n');
+  if (lines.length < 2) return [];
+  // Detect separator
+  const sep = lines[0].includes('\t') ? '\t' : ',';
+  const headers = parseCSVLine(lines[0], sep);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const vals = parseCSVLine(lines[i], sep);
+    const row = {};
+    headers.forEach((h, j) => { row[h.trim()] = (vals[j] || '').trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCSVLine(line, sep) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (c === sep && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseRIS(text) {
+  const records = [];
+  let current = {};
+  for (const line of text.split('\n')) {
+    const m = line.match(/^([A-Z][A-Z0-9])\s{2}-\s(.*)$/);
+    if (m) {
+      const [, tag, val] = m;
+      if (tag === 'ER') { if (current.title) records.push(current); current = {}; }
+      else if (tag === 'TI' || tag === 'T1') current.title = (current.title || '') + val.trim();
+      else if (tag === 'AB' || tag === 'N2') current.abstract = (current.abstract || '') + ' ' + val.trim();
+      else if (tag === 'AU' || tag === 'A1') current.authors = (current.authors ? current.authors + '; ' : '') + val.trim();
+      else if (tag === 'PY' || tag === 'Y1') current.year = val.trim().substring(0,4);
+      else if (tag === 'JO' || tag === 'JF' || tag === 'T2') current.journal = current.journal || val.trim();
+      else if (tag === 'DO') current.doi = val.trim();
+    }
+  }
+  if (current.title) records.push(current);
+  return records;
+}
+
+function parseNBIB(text) {
+  const records = [];
+  let current = {};
+  let lastTag = '';
+  for (const line of text.split('\n')) {
+    const m = line.match(/^([A-Z]{2,4})\s*-\s(.*)$/);
+    if (m) {
+      const [, tag, val] = m;
+      lastTag = tag;
+      if (tag === 'PMID') { if (current.title) records.push(current); current = { pmid: val.trim() }; }
+      else if (tag === 'TI') current.title = val.trim();
+      else if (tag === 'AB') current.abstract = val.trim();
+      else if (tag === 'AU') current.authors = (current.authors ? current.authors + '; ' : '') + val.trim();
+      else if (tag === 'DP') current.year = val.trim().substring(0,4);
+      else if (tag === 'JT') current.journal = val.trim();
+      else if (tag === 'AID' && val.includes('doi')) current.doi = val.replace('[doi]','').trim();
+    } else if (line.startsWith('      ') && lastTag) {
+      // Continuation line
+      if (lastTag === 'TI') current.title = (current.title || '') + ' ' + line.trim();
+      else if (lastTag === 'AB') current.abstract = (current.abstract || '') + ' ' + line.trim();
+    }
+  }
+  if (current.title) records.push(current);
+  return records;
+}
+
+function parseBibTeX(text) {
+  const records = [];
+  const entries = text.split(/(?=@\w+\{)/);
+  for (const entry of entries) {
+    if (!entry.trim().startsWith('@')) continue;
+    const rec = {};
+    const titleM = entry.match(/title\s*=\s*[\{"](.+?)[\}"]/i);
+    const absM = entry.match(/abstract\s*=\s*[\{"](.+?)[\}"]/i);
+    const authorM = entry.match(/author\s*=\s*[\{"](.+?)[\}"]/i);
+    const yearM = entry.match(/year\s*=\s*[\{"](\d{4})[\}"]/i);
+    const journalM = entry.match(/journal\s*=\s*[\{"](.+?)[\}"]/i);
+    const doiM = entry.match(/doi\s*=\s*[\{"](.+?)[\}"]/i);
+    if (titleM) rec.title = titleM[1].replace(/[{}]/g,'');
+    if (absM) rec.abstract = absM[1].replace(/[{}]/g,'');
+    if (authorM) rec.authors = authorM[1].replace(/[{}]/g,'');
+    if (yearM) rec.year = yearM[1];
+    if (journalM) rec.journal = journalM[1].replace(/[{}]/g,'');
+    if (doiM) rec.doi = doiM[1].replace(/[{}]/g,'');
+    if (rec.title) records.push(rec);
+  }
+  return records;
+}
+
+function autoDetectColumns(headers) {
+  const mapping = { title: null, abstract: null, authors: null, year: null, journal: null, doi: null, pmid: null };
+  const lowerHeaders = headers.map(h => h.toLowerCase().trim());
+  for (let i = 0; i < headers.length; i++) {
+    const h = lowerHeaders[i];
+    if (/^title$/.test(h) || h === 'ti') mapping.title = headers[i];
+    else if (/abstract/.test(h) || h === 'ab') mapping.abstract = headers[i];
+    else if (/author/.test(h) || h === 'au') mapping.authors = headers[i];
+    else if (/year/.test(h) || h === 'py') mapping.year = headers[i];
+    else if (/journal/.test(h) || h === 'so') mapping.journal = headers[i];
+    else if (/doi/.test(h)) mapping.doi = headers[i];
+    else if (/pmid/.test(h)) mapping.pmid = headers[i];
+  }
+  return mapping;
+}
+
+// ============================================================================
+// PDF TEXT EXTRACTION (PDF.js + Tesseract.js OCR fallback)
+// ============================================================================
+
+// Minimum characters to consider a PDF as "text-based" (not scanned)
+const PDF_MIN_TEXT_CHARS = 200;
+
+/**
+ * Extract text from a PDF file.
+ * 1. Try PDF.js direct text extraction
+ * 2. If result is too sparse (<200 chars), fall back to Tesseract.js OCR
+ * Returns { text, method, pages }
+ */
+async function extractTextFromPDF(file, progressCallback) {
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Step 1: Try PDF.js text extraction
+  if (progressCallback) progressCallback('Extracting text...', 'pdfjs');
+  let pdfText = '';
+  let pageCount = 0;
+
+  try {
+    if (!window.pdfjsLib) throw new Error('PDF.js not loaded');
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pageCount = pdf.numPages;
+
+    for (let i = 1; i <= pageCount; i++) {
+      if (progressCallback) progressCallback(`Reading page ${i}/${pageCount}...`, 'pdfjs');
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map(item => item.str);
+      pdfText += strings.join(' ') + '\n\n';
+    }
+  } catch(e) {
+    console.warn('PDF.js extraction failed:', e.message);
+  }
+
+  // Clean up the text
+  pdfText = pdfText.replace(/\s+/g, ' ').trim();
+
+  // If we got enough text, return it
+  if (pdfText.length >= PDF_MIN_TEXT_CHARS) {
+    return { text: pdfText, method: 'text', pages: pageCount };
+  }
+
+  // Step 2: Fall back to Tesseract.js OCR
+  if (!window.Tesseract) {
+    return { text: pdfText || '', method: 'failed', pages: pageCount,
+      error: 'PDF appears to be scanned but Tesseract.js failed to load. Try refreshing the page.' };
+  }
+
+  if (progressCallback) progressCallback('Scanned PDF detected. Starting OCR...', 'ocr');
+
+  try {
+    // Convert PDF pages to images using PDF.js canvas rendering, then OCR each
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pageCount = pdf.numPages;
+    let ocrText = '';
+
+    // Create a worker for all pages
+    const worker = await Tesseract.createWorker('eng', 1, {
+      logger: m => {
+        if (m.status === 'recognizing text' && progressCallback) {
+          const pageProgress = Math.round(m.progress * 100);
+          progressCallback(`OCR in progress... ${pageProgress}%`, 'ocr');
+        }
+      }
+    });
+
+    // Process each page (limit to first 30 pages for performance)
+    const maxPages = Math.min(pageCount, 30);
+    for (let i = 1; i <= maxPages; i++) {
+      if (progressCallback) progressCallback(`OCR: page ${i}/${maxPages}...`, 'ocr');
+
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for better OCR
+
+      // Render to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      // OCR the canvas
+      const { data } = await worker.recognize(canvas);
+      ocrText += data.text + '\n\n';
+
+      // Clean up
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+
+    await worker.terminate();
+
+    ocrText = ocrText.trim();
+    if (ocrText.length > 0) {
+      return { text: ocrText, method: 'ocr', pages: pageCount };
+    }
+  } catch(e) {
+    console.error('OCR failed:', e);
+    return { text: pdfText || '', method: 'failed', pages: pageCount,
+      error: 'OCR processing failed: ' + e.message };
+  }
+
+  return { text: pdfText || '', method: 'failed', pages: pageCount,
+    error: 'Could not extract text from this PDF.' };
+}
+
+/**
+ * Process multiple PDF files and return an array of { filename, title, text, method }
+ */
+async function processMultiplePDFs(files, statusCallback) {
+  const results = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const name = file.name;
+    if (statusCallback) statusCallback(i, files.length, name, 'starting');
+
+    if (file.name.toLowerCase().endsWith('.txt')) {
+      // Plain text file - just read it
+      const text = await file.text();
+      results.push({
+        filename: name,
+        title: name.replace(/\.[^.]+$/, ''),
+        text: text,
+        method: 'text',
+        chars: text.length,
+      });
+      if (statusCallback) statusCallback(i, files.length, name, 'done');
+      continue;
+    }
+
+    try {
+      const result = await extractTextFromPDF(file, (msg, method) => {
+        if (statusCallback) statusCallback(i, files.length, name, method, msg);
+      });
+      results.push({
+        filename: name,
+        title: name.replace(/\.[^.]+$/, ''),
+        text: result.text,
+        method: result.method,
+        chars: result.text.length,
+        pages: result.pages,
+        error: result.error,
+      });
+      if (statusCallback) statusCallback(i, files.length, name, result.error ? 'error' : 'done');
+    } catch(e) {
+      results.push({
+        filename: name,
+        title: name.replace(/\.[^.]+$/, ''),
+        text: '',
+        method: 'failed',
+        chars: 0,
+        error: e.message,
+      });
+      if (statusCallback) statusCallback(i, files.length, name, 'error');
+    }
+  }
+  return results;
+}
+
+// ============================================================================
+// CSV EXPORT
+// ============================================================================
+function downloadCSV(data, filename) {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]);
+  const lines = [headers.join(',')];
+  for (const row of data) {
+    lines.push(headers.map(h => {
+      let v = String(row[h] ?? '');
+      if (v.includes(',') || v.includes('"') || v.includes('\n')) v = '"' + v.replace(/"/g,'""') + '"';
+      return v;
+    }).join(','));
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+// ============================================================================
+// UI HELPERS
+// ============================================================================
+function showLoading(text = 'Processing...') {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-progress').textContent = '';
+  document.getElementById('loading').style.display = 'flex';
+}
+function updateLoading(text, progress = '') {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-progress').textContent = progress;
+}
+function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+
+function truncate(text, max) {
+  if (!text || text.length <= max) return text || '';
+  return text.substring(0, max) + '...';
+}
+
+// ============================================================================
+// NAVIGATION
+// ============================================================================
+function renderNav() {
+  const container = document.getElementById('nav-items');
+  container.innerHTML = PAGES.map((p, i) => {
+    const completed = isPageCompleted(i);
+    const enabled = isPageEnabled(i);
+    return `<div class="nav-item ${i === APP.currentPage ? 'active' : ''} ${completed ? 'completed' : ''} ${!enabled ? 'disabled' : ''}" onclick="navigateTo(${i})">
+      <div class="num">${completed ? '✓' : i}</div>
+      <span>${p.name}</span>
+    </div>`;
+  }).join('');
+}
+
+function isPageCompleted(i) {
+  if (i === 0) return !!(APP.project && APP.project.criteria);
+  if (i === 2) return APP.screeningResults.length > 0;
+  if (i === 3) return APP.fulltextResults.length > 0;
+  if (i === 5) return APP.extractionFields.length > 0;
+  if (i === 6) return APP.extractions.length > 0;
+  if (i === 8) return APP.robAssessments.length > 0;
+  return false;
+}
+
+function isPageEnabled(i) {
+  if (i <= 1) return true;
+  if (i === 2) return !!(APP.project && APP.project.criteria);
+  if (i === 3) return APP.screeningResults.length > 0;
+  if (i === 4) return APP.screeningResults.length > 0;
+  if (i === 5) return APP.screeningResults.length > 0;
+  if (i === 6) return APP.extractionFields.length > 0;
+  if (i === 7) return true;
+  if (i === 8) return true;
+  return true;
+}
+
+function navigateTo(page) {
+  if (!isPageEnabled(page)) return;
+  APP.currentPage = page;
+  renderNav();
+  renderPage();
+  saveState();
+}
+
+// ============================================================================
+// PAGE RENDERER
+// ============================================================================
+function renderPage() {
+  const main = document.getElementById('main-content');
+  switch(APP.currentPage) {
+    case 0: renderSetup(main); break;
+    case 1: renderSearchStrategy(main); break;
+    case 2: renderTitleAbstractScreening(main); break;
+    case 3: renderFulltextScreening(main); break;
+    case 4: renderFeedbackReview(main); break;
+    case 5: renderExtractionSetup(main); break;
+    case 6: renderDataExtraction(main); break;
+    case 7: renderRoBSetup(main); break;
+    case 8: renderRiskOfBias(main); break;
+  }
+}
+
+// ============================================================================
+// PAGE 0: SETUP REVIEW
+// ============================================================================
+function renderSetup(el) {
+  const p = APP.project || {};
+  const criteria = p.criteria || {};
+  const inc = criteria.inclusion || {};
+
+  el.innerHTML = `
+    <h2 class="page-title">Project Setup</h2>
+    <p class="page-subtitle">Configure your systematic review project and LLM settings</p>
+
+    <div class="card">
+      <h3>LLM Configuration</h3>
+      <div class="card-grid">
+        <div>
+          <label>API Provider</label>
+          <select id="api-provider" onchange="updateProviderModels()">
+            <option value="openai" ${APP.apiProvider==='openai'?'selected':''}>OpenAI</option>
+            <option value="anthropic" ${APP.apiProvider==='anthropic'?'selected':''}>Anthropic</option>
+          </select>
+        </div>
+        <div>
+          <label>Model</label>
+          <select id="api-model"></select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>API Key</label>
+        <div class="help-text">Your key is stored only in browser memory and never saved to disk.</div>
+        <input type="password" id="api-key" value="${APP.apiKey}" placeholder="sk-... or sk-ant-...">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline" onclick="testAPIKey()">Test Connection</button>
+      </div>
+      <div id="api-test-result" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Project Details</h3>
+      <div class="card-grid">
+        <div>
+          <label>Project Name</label>
+          <input type="text" id="project-name" value="${p.name || ''}" placeholder="My Systematic Review">
+        </div>
+        <div>
+          <label>Review Type</label>
+          <select id="review-type">
+            <option value="standard" ${p.reviewType==='standard'?'selected':''}>Standard Systematic Review</option>
+            <option value="rapid" ${p.reviewType==='rapid'?'selected':''}>Rapid Review</option>
+            <option value="scoping" ${p.reviewType==='scoping'?'selected':''}>Scoping Review</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Research Question</label>
+        <textarea id="research-question" rows="3" placeholder="e.g., What is the efficacy of cognitive behavioral therapy for treating anxiety disorders in adults?">${p.researchQuestion || ''}</textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+        <button class="btn btn-success" onclick="generateCriteria()" ${!APP.apiKey?'disabled':''}>Generate Criteria with AI</button>
+      </div>
+    </div>
+
+    ${criteria.inclusion ? `
+    <div class="card">
+      <h3>Inclusion Criteria (PICO)</h3>
+      <div class="pico-grid">
+        <div class="pico-item"><div class="pico-label">Population</div><textarea id="pico-p" rows="2">${inc.population || ''}</textarea></div>
+        <div class="pico-item"><div class="pico-label">Intervention</div><textarea id="pico-i" rows="2">${inc.intervention || ''}</textarea></div>
+        <div class="pico-item"><div class="pico-label">Comparison</div><textarea id="pico-c" rows="2">${inc.comparison || ''}</textarea></div>
+        <div class="pico-item"><div class="pico-label">Outcome</div><textarea id="pico-o" rows="2">${inc.outcome || ''}</textarea></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="pico-item"><div class="pico-label">Study Design</div><textarea id="pico-sd" rows="2">${inc.study_design || ''}</textarea></div>
+      </div>
+
+      <h3 style="margin-top:16px">Exclusion Criteria</h3>
+      <div id="exclusion-list">
+        ${(criteria.exclusion || []).map((ex, i) => `
+          <div class="criteria-item">
+            <input type="text" value="${ex}" onchange="updateExclusion(${i}, this.value)">
+            <button class="criteria-remove" onclick="removeExclusion(${i})">×</button>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="addExclusion()" style="margin-top:6px">+ Add Criterion</button>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveCriteria()">Save Criteria</button>
+      </div>
+    </div>
+    ` : ''}
+
+    ${APP.costTotal > 0 ? `
+    <div class="card cost-card">
+      <h3>Running Cost</h3>
+      <div class="cost-value">$${APP.costTotal.toFixed(4)}</div>
+    </div>
+    ` : ''}
+  `;
+  updateProviderModels();
+}
+
+function updateProviderModels() {
+  const provider = document.getElementById('api-provider').value;
+  const modelSel = document.getElementById('api-model');
+  const models = provider === 'openai' ? OPENAI_MODELS : ANTHROPIC_MODELS;
+  modelSel.innerHTML = models.map(m => `<option value="${m}" ${m===APP.model?'selected':''}>${m}</option>`).join('');
+  APP.apiProvider = provider;
+  if (!models.includes(APP.model)) {
+    APP.model = models[0];
+    modelSel.value = APP.model;
+  }
+}
+
+async function testAPIKey() {
+  APP.apiKey = document.getElementById('api-key').value;
+  APP.apiProvider = document.getElementById('api-provider').value;
+  APP.model = document.getElementById('api-model').value;
+  const el = document.getElementById('api-test-result');
+  try {
+    el.innerHTML = '<span style="color:var(--text-muted)">Testing...</span>';
+    await callLLM([
+      { role: 'system', content: 'Respond with just the word OK.' },
+      { role: 'user', content: 'Test' }
+    ], { maxTokens: 5 });
+    el.innerHTML = '<span class="badge badge-success">Connection successful!</span>';
+  } catch(e) {
+    el.innerHTML = `<span class="badge badge-danger">Error: ${e.message}</span>`;
+  }
+}
+
+function saveProject() {
+  APP.apiKey = document.getElementById('api-key').value;
+  APP.apiProvider = document.getElementById('api-provider').value;
+  APP.model = document.getElementById('api-model').value;
+  APP.project = APP.project || {};
+  APP.project.name = document.getElementById('project-name').value;
+  APP.project.reviewType = document.getElementById('review-type').value;
+  APP.project.researchQuestion = document.getElementById('research-question').value;
+  saveState();
+  renderNav();
+  renderPage();
+}
+
+async function generateCriteria() {
+  saveProject();
+  if (!APP.project.researchQuestion) { alert('Please enter a research question first.'); return; }
+  showLoading('Generating criteria with AI...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: `You are an expert systematic review methodologist. Your task is to help researchers develop clear, specific inclusion and exclusion criteria for their systematic reviews following PICO(S) framework guidelines.` },
+      { role: 'user', content: `Given this research question for a systematic review:\n\n${APP.project.researchQuestion}\n\nGenerate structured inclusion and exclusion criteria following the PICO(S) framework.\n\nRespond in JSON format:\n{\n    "inclusion_criteria": {\n        "population": "Detailed population criteria...",\n        "intervention": "Detailed intervention criteria...",\n        "comparison": "Detailed comparison criteria...",\n        "outcome": "Detailed outcome criteria...",\n        "study_design": "Acceptable study designs..."\n    },\n    "exclusion_criteria": [\n        "Exclusion criterion 1",\n        "Exclusion criterion 2"\n    ],\n    "suggested_exclusion_reasons": [\n        "Common reason 1",\n        "Common reason 2"\n    ]\n}` }
+    ], { jsonMode: true, maxTokens: 1000 });
+
+    const data = parseLLMJson(resp.content);
+    if (data) {
+      APP.project.criteria = {
+        inclusion: data.inclusion_criteria,
+        exclusion: data.exclusion_criteria || [],
+        suggested_exclusion_reasons: data.suggested_exclusion_reasons || [],
+      };
+      saveState();
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading();
+  renderNav();
+  renderPage();
+}
+
+function saveCriteria() {
+  if (!APP.project) return;
+  APP.project.criteria = APP.project.criteria || {};
+  APP.project.criteria.inclusion = {
+    population: document.getElementById('pico-p').value,
+    intervention: document.getElementById('pico-i').value,
+    comparison: document.getElementById('pico-c').value,
+    outcome: document.getElementById('pico-o').value,
+    study_design: document.getElementById('pico-sd').value,
+  };
+  saveState();
+  renderNav();
+  alert('Criteria saved!');
+}
+
+function updateExclusion(i, val) {
+  if (APP.project?.criteria?.exclusion) APP.project.criteria.exclusion[i] = val;
+}
+function removeExclusion(i) {
+  if (APP.project?.criteria?.exclusion) { APP.project.criteria.exclusion.splice(i, 1); saveState(); renderPage(); }
+}
+function addExclusion() {
+  if (!APP.project?.criteria) return;
+  APP.project.criteria.exclusion = APP.project.criteria.exclusion || [];
+  APP.project.criteria.exclusion.push('');
+  saveState(); renderPage();
+}
+
+// ============================================================================
+// PAGE 1: SEARCH STRATEGY
+// ============================================================================
+function renderSearchStrategy(el) {
+  const ss = APP.searchStrategy || {};
+  el.innerHTML = `
+    <h2 class="page-title">Search Strategy Wizard</h2>
+    <p class="page-subtitle">Build and translate your search strategy using AI</p>
+
+    <div class="card">
+      <h3>Step 1: PICO Analysis</h3>
+      <p style="margin-bottom:12px;color:var(--text-muted);font-size:0.9rem">Analyze your research question to extract PICO elements and generate search terms.</p>
+      <button class="btn btn-primary" onclick="analyzePICO()" ${!APP.apiKey?'disabled':''}>Analyze PICO Elements</button>
+      ${ss.pico ? `
+        <div style="margin-top:15px">
+          ${['population','intervention','comparison','outcome'].map(k => {
+            const p = ss.pico[k];
+            if (!p) return '';
+            return `<div class="pico-item" style="margin-bottom:8px">
+              <div class="pico-label">${k}</div>
+              <div><strong>${p.label || ''}</strong></div>
+              <div style="font-size:0.85rem;margin-top:4px"><strong>Terms:</strong> ${(p.primary_terms||[]).join(', ')}</div>
+              <div style="font-size:0.85rem"><strong>Synonyms:</strong> ${(p.synonyms||[]).join(', ')}</div>
+              <div style="font-size:0.85rem"><strong>MeSH:</strong> ${(p.mesh_terms||[]).join(', ')}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="card">
+      <h3>Step 2: Generate PubMed Strategy</h3>
+      <button class="btn btn-primary" onclick="generatePubMed()" ${!ss.pico || !APP.apiKey?'disabled':''}>Generate PubMed Strategy</button>
+      ${ss.pubmed ? `
+        <div style="margin-top:12px">
+          <textarea id="pubmed-strategy" rows="12" style="font-family:monospace;font-size:0.85rem">${ss.pubmed}</textarea>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline" onclick="copyStrategy('pubmed-strategy')">Copy to Clipboard</button>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="card">
+      <h3>Step 3: Translate to Other Databases</h3>
+      <div style="margin-bottom:12px">
+        <label>Target Database</label>
+        <select id="translate-db">
+          <option value="SCOPUS">SCOPUS</option>
+          <option value="Web of Science">Web of Science</option>
+          <option value="Cochrane Library">Cochrane Library</option>
+          <option value="EMBASE">EMBASE (Ovid)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="translateStrategy()" ${!ss.pubmed || !APP.apiKey?'disabled':''}>Translate</button>
+      ${ss.translations ? Object.entries(ss.translations).map(([db, strat]) => `
+        <div style="margin-top:12px">
+          <h4>${db}</h4>
+          <textarea id="strat-${db.replace(/\s/g,'')}" rows="10" style="font-family:monospace;font-size:0.85rem">${strat}</textarea>
+          <button class="btn btn-sm btn-outline" onclick="copyStrategy('strat-${db.replace(/\s/g,'')}')">Copy</button>
+        </div>
+      `).join('') : ''}
+    </div>
+  `;
+}
+
+async function analyzePICO() {
+  if (!APP.project?.researchQuestion) { alert('Set up your research question first.'); return; }
+  showLoading('Analyzing PICO elements...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: `You are an expert systematic review methodologist and medical librarian. Analyze research questions and break them down into PICO elements with comprehensive search terms, synonyms, and MeSH terms.` },
+      { role: 'user', content: `Analyze the following research question and extract PICO elements with search terms:\n\nResearch Question: ${APP.project.researchQuestion}\n\nRespond in JSON format:\n{\n    "population": { "label": "...", "primary_terms": [...], "synonyms": [...], "mesh_terms": [...], "notes": "..." },\n    "intervention": { "label": "...", "primary_terms": [...], "synonyms": [...], "mesh_terms": [...], "notes": "..." },\n    "comparison": { "label": "...", "primary_terms": [...], "synonyms": [...], "mesh_terms": [...], "notes": "..." },\n    "outcome": { "label": "...", "primary_terms": [...], "synonyms": [...], "mesh_terms": [...], "notes": "..." },\n    "search_notes": "..."\n}` }
+    ], { jsonMode: true, maxTokens: 1500 });
+    const data = parseLLMJson(resp.content);
+    if (data) { APP.searchStrategy = APP.searchStrategy || {}; APP.searchStrategy.pico = data; saveState(); }
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderPage();
+}
+
+async function generatePubMed() {
+  showLoading('Generating PubMed strategy...');
+  try {
+    const pico = APP.searchStrategy.pico;
+    const picoText = JSON.stringify(pico, null, 2);
+    const resp = await callLLM([
+      { role: 'system', content: `You are an expert medical librarian specializing in PubMed search strategy development. Create precise, comprehensive search strategies using proper PubMed syntax.` },
+      { role: 'user', content: `Create a PubMed search strategy based on the following PICO elements:\n\n${picoText}\n\nRequirements:\n1. Use numbered search lines\n2. Combine terms within each concept using OR\n3. Combine concepts using AND\n4. Use appropriate field tags: [tiab], [mh], [tw]\n5. Use truncation (*) appropriately\n\nReturn ONLY the search strategy text.` }
+    ], { maxTokens: 2000 });
+    APP.searchStrategy.pubmed = resp.content.trim();
+    saveState();
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderPage();
+}
+
+async function translateStrategy() {
+  const db = document.getElementById('translate-db').value;
+  showLoading(`Translating to ${db}...`);
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: `You are an expert medical librarian who translates search strategies between different literature databases.` },
+      { role: 'user', content: `Translate this PubMed search strategy to ${db}:\n\n${APP.searchStrategy.pubmed}\n\nReturn ONLY the translated search strategy.` }
+    ], { maxTokens: 2000 });
+    APP.searchStrategy.translations = APP.searchStrategy.translations || {};
+    APP.searchStrategy.translations[db] = resp.content.trim();
+    saveState();
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderPage();
+}
+
+function copyStrategy(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.value).then(() => alert('Copied!'));
+}
+
+// ============================================================================
+// PAGE 2: TITLE/ABSTRACT SCREENING
+// ============================================================================
+function renderTitleAbstractScreening(el) {
+  const included = APP.screeningResults.filter(r => r.decision === 'included');
+  const excluded = APP.screeningResults.filter(r => r.decision === 'excluded');
+
+  el.innerHTML = `
+    <h2 class="page-title">Title & Abstract Screening</h2>
+    <p class="page-subtitle">Upload references and screen them against your PICO criteria using AI</p>
+
+    ${APP.screeningResults.length > 0 ? `
+    <div class="stats-row">
+      <div class="stat-card"><div class="value">${APP.studies.length}</div><div class="label">Total Studies</div></div>
+      <div class="stat-card"><div class="value" style="color:var(--success)">${included.length}</div><div class="label">Included</div></div>
+      <div class="stat-card"><div class="value" style="color:var(--danger)">${excluded.length}</div><div class="label">Excluded</div></div>
+      <div class="stat-card"><div class="value">${APP.screeningResults.length > 0 ? (included.length / APP.screeningResults.length * 100).toFixed(1) + '%' : '-'}</div><div class="label">Inclusion Rate</div></div>
+    </div>
+    ` : ''}
+
+    <div class="card">
+      <h3>Upload References</h3>
+      <div class="help-text">Supports CSV, RIS, NBIB, and BibTeX formats</div>
+      <div class="upload-area" onclick="document.getElementById('file-upload').click()">
+        <input type="file" id="file-upload" accept=".csv,.ris,.nbib,.bib,.txt" onchange="handleFileUpload(event)" multiple>
+        <p style="font-size:1.2rem;margin-bottom:8px">📁</p>
+        <p>Click to upload reference files</p>
+        <p style="font-size:0.8rem;color:var(--text-muted)">CSV, RIS, NBIB, BibTeX</p>
+      </div>
+      ${APP.studies.length > 0 ? `
+        <div class="alert alert-info" style="margin-top:12px">${APP.studies.length} studies loaded</div>
+      ` : ''}
+    </div>
+
+    ${APP.studies.length > 0 && APP.screeningResults.length === 0 ? `
+    <div class="card">
+      <h3>Start Screening</h3>
+      <p style="margin-bottom:8px;color:var(--text-muted)">Estimated cost: ~$${estimateScreeningCost(APP.studies.length).toFixed(4)}</p>
+      <button class="btn btn-success" onclick="startScreening()">Screen ${APP.studies.length} Studies</button>
+    </div>
+    ` : ''}
+
+    ${APP.screeningResults.length > 0 ? `
+    <div class="card">
+      <h3>Screening Results</h3>
+      <div class="btn-group" style="margin-bottom:15px">
+        <button class="btn btn-sm btn-outline" onclick="exportScreening()">Export CSV</button>
+        <button class="btn btn-sm btn-danger" onclick="clearScreening()">Clear Results</button>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="showScreeningTab('all',this)">All (${APP.screeningResults.length})</div>
+        <div class="tab" onclick="showScreeningTab('included',this)">Included (${included.length})</div>
+        <div class="tab" onclick="showScreeningTab('excluded',this)">Excluded (${excluded.length})</div>
+      </div>
+      <div class="table-wrap">
+        <table id="screening-table">
+          <thead><tr><th>#</th><th>Title</th><th>Decision</th><th>Reason</th><th>Confidence</th></tr></thead>
+          <tbody>
+            ${APP.screeningResults.map((r, i) => `
+              <tr class="screening-row" data-decision="${r.decision}">
+                <td>${i+1}</td>
+                <td title="${(r.title||'').replace(/"/g,'&quot;')}">${truncate(r.title, 60)}</td>
+                <td><span class="badge ${r.decision==='included'?'badge-success':'badge-danger'}">${r.decision}</span></td>
+                <td title="${(r.reason||'').replace(/"/g,'&quot;')}">${truncate(r.reason, 50)}</td>
+                <td>${(r.confidence*100).toFixed(0)}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+function estimateScreeningCost(n) {
+  const p = PRICING[APP.model] || PRICING['gpt-4o'];
+  return n * (400/1e6 * p.input + 80/1e6 * p.output);
+}
+
+async function handleFileUpload(event) {
+  const files = event.target.files;
+  if (!files.length) return;
+
+  showLoading('Parsing files...');
+  const allStudies = [];
+
+  for (const file of files) {
+    const text = await file.text();
+    const ext = file.name.split('.').pop().toLowerCase();
+    let records = [];
+
+    if (ext === 'csv' || ext === 'txt') {
+      const rows = parseCSV(text);
+      if (rows.length) {
+        const headers = Object.keys(rows[0]);
+        const mapping = autoDetectColumns(headers);
+        records = rows.map(r => ({
+          title: r[mapping.title] || r[headers[0]] || '',
+          abstract: mapping.abstract ? r[mapping.abstract] : '',
+          authors: mapping.authors ? r[mapping.authors] : '',
+          year: mapping.year ? r[mapping.year] : '',
+          journal: mapping.journal ? r[mapping.journal] : '',
+          doi: mapping.doi ? r[mapping.doi] : '',
+          pmid: mapping.pmid ? r[mapping.pmid] : '',
+          source: file.name,
+        }));
+      }
+    } else if (ext === 'ris') {
+      records = parseRIS(text).map(r => ({ ...r, source: file.name }));
+    } else if (ext === 'nbib') {
+      records = parseNBIB(text).map(r => ({ ...r, source: file.name }));
+    } else if (ext === 'bib') {
+      records = parseBibTeX(text).map(r => ({ ...r, source: file.name }));
+    }
+
+    allStudies.push(...records);
+  }
+
+  // Simple deduplication by title
+  const seen = new Set();
+  const unique = [];
+  for (const s of allStudies) {
+    const key = (s.title || '').toLowerCase().trim();
+    if (key && !seen.has(key)) { seen.add(key); unique.push(s); }
+  }
+
+  APP.studies = unique;
+  saveState();
+  hideLoading();
+  renderPage();
+}
+
+async function startScreening() {
+  if (!APP.project?.criteria?.inclusion) { alert('Please set up criteria first.'); return; }
+  if (!APP.apiKey) { alert('Please configure your API key.'); return; }
+
+  const inc = APP.project.criteria.inclusion;
+  const exclusionStr = (APP.project.criteria.exclusion || []).join('; ') || 'None specified';
+  const total = APP.studies.length;
+  APP.screeningResults = [];
+
+  showLoading(`Screening study 1 of ${total}...`);
+
+  for (let i = 0; i < total; i++) {
+    const study = APP.studies[i];
+    updateLoading(`Screening study ${i+1} of ${total}...`, `${truncate(study.title, 50)}`);
+
+    try {
+      const resp = await callLLM([
+        { role: 'system', content: 'You are a systematic review screener. Evaluate studies against PICO criteria. Be thorough but inclusive - when uncertain, include for full-text review. Respond only in JSON.' },
+        { role: 'user', content: `Evaluate this study for inclusion.\n\nResearch Question: ${APP.project.researchQuestion}\n\nPICO Criteria:\nP: ${inc.population}\nI: ${inc.intervention}\nC: ${inc.comparison}\nO: ${inc.outcome}\nDesign: ${inc.study_design}\n\nExclusion criteria: ${exclusionStr}\n\nStudy:\nTitle: ${truncate(study.title, 300)}\nAbstract: ${truncate(study.abstract, 2000) || 'Abstract not available'}\n\nRespond in JSON:\n{"decision":"included"/"excluded","reason":"brief explanation","reason_category":"wrong_population/wrong_intervention/wrong_comparator/wrong_outcome/wrong_study_design/other/meets_criteria","confidence":0.0-1.0}` }
+      ], { jsonMode: true, maxTokens: 200, temperature: 0.3 });
+
+      const data = parseLLMJson(resp.content);
+      APP.screeningResults.push({
+        index: i,
+        title: study.title,
+        abstract: study.abstract,
+        decision: data?.decision || 'included',
+        reason: data?.reason || 'Unable to parse response',
+        reason_category: data?.reason_category || 'other',
+        confidence: data?.confidence ?? 0.5,
+      });
+    } catch(e) {
+      APP.screeningResults.push({
+        index: i, title: study.title, abstract: study.abstract,
+        decision: 'included', reason: `API error: ${e.message}`,
+        reason_category: 'other', confidence: 0.0,
+      });
+    }
+
+    // Save progress every 10 studies
+    if ((i+1) % 10 === 0) saveState();
+  }
+
+  saveState();
+  hideLoading();
+  renderNav();
+  renderPage();
+}
+
+function showScreeningTab(filter, tabEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelectorAll('.screening-row').forEach(row => {
+    if (filter === 'all') row.style.display = '';
+    else row.style.display = row.dataset.decision === filter ? '' : 'none';
+  });
+}
+
+function exportScreening() {
+  downloadCSV(APP.screeningResults.map(r => ({
+    Title: r.title,
+    Abstract: r.abstract || '',
+    Decision: r.decision,
+    Reason: r.reason,
+    Category: r.reason_category,
+    Confidence: r.confidence,
+  })), 'screening_results.csv');
+}
+
+function clearScreening() {
+  if (confirm('Clear all screening results?')) {
+    APP.screeningResults = [];
+    saveState(); renderNav(); renderPage();
+  }
+}
+
+// ============================================================================
+// PAGE 3: FULL-TEXT SCREENING
+// ============================================================================
+function renderFulltextScreening(el) {
+  const includedStudies = APP.screeningResults.filter(r => r.decision === 'included');
+  const pdfs = APP.processedPDFs || [];
+  const unscreened = pdfs.filter(p => p.text && !APP.fulltextResults.find(r => r.title === p.title));
+
+  el.innerHTML = `
+    <h2 class="page-title">Full-text Screening</h2>
+    <p class="page-subtitle">Upload PDFs for included studies and run full-text screening</p>
+
+    <div class="alert alert-info">${includedStudies.length} studies passed title/abstract screening</div>
+
+    <div class="card">
+      <h3>Upload Full-text PDFs</h3>
+      <div class="help-text">Upload PDFs or text files. Text-based PDFs are extracted instantly. Scanned PDFs are automatically OCR'd using Tesseract.js (takes ~30s per page).</div>
+      <div class="upload-area" onclick="document.getElementById('pdf-upload').click()">
+        <input type="file" id="pdf-upload" accept=".pdf,.txt" onchange="handlePDFUpload(event)" multiple>
+        <p style="font-size:1.2rem;margin-bottom:8px">📄</p>
+        <p>Click to upload PDF or text files</p>
+        <p style="font-size:0.8rem;color:var(--text-muted)">Drag & drop or click to browse</p>
+      </div>
+
+      ${pdfs.length > 0 ? `
+      <div class="pdf-queue" style="margin-top:16px">
+        <h4 style="margin-bottom:8px">Uploaded Files (${pdfs.length})</h4>
+        ${pdfs.map((p, i) => `
+          <div class="pdf-queue-item">
+            <span class="pdf-name" title="${p.filename}">${p.filename}</span>
+            <span class="badge ${p.method === 'text' ? 'badge-success' : p.method === 'ocr' ? 'badge-warning' : 'badge-danger'}">
+              ${p.method === 'text' ? 'Text extracted' : p.method === 'ocr' ? 'OCR extracted' : 'Failed'}
+            </span>
+            <span class="pdf-chars">${p.chars ? (p.chars > 1000 ? Math.round(p.chars/1000) + 'K' : p.chars) + ' chars' : ''}</span>
+            ${p.error ? `<span class="pdf-status error" title="${p.error}">⚠</span>` : ''}
+            <button class="criteria-remove" onclick="removePDF(${i})" title="Remove">×</button>
+          </div>
+        `).join('')}
+      </div>
+      ` : ''}
+    </div>
+
+    ${unscreened.length > 0 ? `
+    <div class="card">
+      <h3>Batch Screen PDFs</h3>
+      <p style="margin-bottom:8px;color:var(--text-muted)">${unscreened.length} uploaded PDFs ready for full-text screening</p>
+      <button class="btn btn-success" onclick="batchScreenFulltext()" ${!APP.apiKey?'disabled':''}>Screen All ${unscreened.length} PDFs</button>
+    </div>
+    ` : ''}
+
+    <div class="card">
+      <h3>Or Paste Full Text Manually</h3>
+      <p class="help-text">Paste study text and screen one at a time</p>
+      <div style="margin-bottom:12px">
+        <label>Study Title</label>
+        <input type="text" id="ft-title" placeholder="Study title">
+      </div>
+      <div>
+        <label>Full Text</label>
+        <textarea id="ft-text" rows="10" placeholder="Paste the full text of the study here..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="screenFulltext()" ${!APP.apiKey?'disabled':''}>Screen This Study</button>
+      </div>
+    </div>
+
+    ${APP.fulltextResults.length > 0 ? `
+    <div class="card">
+      <h3>Full-text Screening Results (${APP.fulltextResults.length})</h3>
+      <div class="btn-group" style="margin-bottom:12px">
+        <button class="btn btn-sm btn-outline" onclick="exportFulltext()">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>Decision</th><th>Reason</th><th>Confidence</th></tr></thead>
+          <tbody>
+            ${APP.fulltextResults.map((r, i) => `
+              <tr>
+                <td>${i+1}</td>
+                <td title="${(r.title||'').replace(/"/g,'&quot;')}">${truncate(r.title, 50)}</td>
+                <td><span class="badge ${r.decision==='included'?'badge-success':'badge-danger'}">${r.decision}</span></td>
+                <td title="${(r.reason||'').replace(/"/g,'&quot;')}">${truncate(r.reason, 60)}</td>
+                <td>${(r.confidence*100).toFixed(0)}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+async function handlePDFUpload(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  showLoading(`Processing ${files.length} file(s)...`);
+
+  const results = await processMultiplePDFs(files, (i, total, name, status, msg) => {
+    const statusText = status === 'ocr' ? `OCR: ${name}` : status === 'pdfjs' ? `Reading: ${name}` : `Processing ${name}`;
+    updateLoading(`File ${i+1} of ${total}: ${statusText}`, msg || '');
+  });
+
+  // Add to processed PDFs (avoid duplicates by filename)
+  for (const r of results) {
+    const existing = APP.processedPDFs.findIndex(p => p.filename === r.filename);
+    if (existing >= 0) APP.processedPDFs[existing] = r;
+    else APP.processedPDFs.push(r);
+  }
+
+  // Summary
+  const textCount = results.filter(r => r.method === 'text').length;
+  const ocrCount = results.filter(r => r.method === 'ocr').length;
+  const failCount = results.filter(r => r.method === 'failed').length;
+
+  hideLoading();
+
+  let summary = `Processed ${results.length} file(s):\n`;
+  if (textCount) summary += `• ${textCount} text-based PDF(s) extracted successfully\n`;
+  if (ocrCount) summary += `• ${ocrCount} scanned PDF(s) processed with OCR\n`;
+  if (failCount) summary += `• ${failCount} file(s) failed — try uploading as .txt instead\n`;
+  alert(summary);
+
+  // Don't save full text to localStorage (too large), just metadata
+  saveState();
+  renderPage();
+}
+
+function removePDF(i) {
+  APP.processedPDFs.splice(i, 1);
+  renderPage();
+}
+
+async function batchScreenFulltext() {
+  if (!APP.project?.criteria?.inclusion) { alert('Set up criteria first.'); return; }
+  if (!APP.apiKey) { alert('Configure your API key.'); return; }
+
+  const unscreened = APP.processedPDFs.filter(p => p.text && !APP.fulltextResults.find(r => r.title === p.title));
+  const inc = APP.project.criteria.inclusion;
+  const exclusionStr = (APP.project.criteria.exclusion || []).join('; ') || 'None specified';
+
+  showLoading(`Screening ${unscreened.length} PDFs...`);
+
+  for (let i = 0; i < unscreened.length; i++) {
+    const pdf = unscreened[i];
+    updateLoading(`Screening ${i+1} of ${unscreened.length}...`, truncate(pdf.title, 50));
+
+    try {
+      const resp = await callLLM([
+        { role: 'system', content: 'You are an expert systematic review screener conducting full-text screening. Carefully evaluate the complete manuscript against the inclusion criteria. Be thorough and provide detailed reasoning.' },
+        { role: 'user', content: `Evaluate this full-text manuscript for final inclusion.\n\nResearch Question: ${APP.project.researchQuestion}\n\nInclusion Criteria:\n- Population: ${inc.population}\n- Intervention: ${inc.intervention}\n- Comparison: ${inc.comparison}\n- Outcome: ${inc.outcome}\n- Study Design: ${inc.study_design}\n\nExclusion criteria: ${exclusionStr}\n\nFull-Text Content:\n${truncate(pdf.text, 50000)}\n\nRespond in JSON:\n{"decision":"included"/"excluded","reason":"detailed explanation","reason_category":"wrong_population/wrong_intervention/wrong_comparator/wrong_outcome/wrong_study_design/other/meets_criteria","confidence":0.0-1.0,"criteria_evaluation":{"population":{"met":true/false,"notes":"..."},"intervention":{"met":true/false,"notes":"..."},"comparison":{"met":true/false,"notes":"..."},"outcome":{"met":true/false,"notes":"..."},"study_design":{"met":true/false,"notes":"..."}}}` }
+      ], { jsonMode: true, maxTokens: 500, temperature: 0.3 });
+
+      const data = parseLLMJson(resp.content);
+      APP.fulltextResults.push({
+        title: pdf.title,
+        decision: data?.decision || 'included',
+        reason: data?.reason || '',
+        confidence: data?.confidence ?? 0.5,
+        reason_category: data?.reason_category || 'other',
+        criteria_evaluation: data?.criteria_evaluation || {},
+      });
+    } catch(e) {
+      APP.fulltextResults.push({
+        title: pdf.title, decision: 'included',
+        reason: `API error: ${e.message}`, confidence: 0.0,
+        reason_category: 'other', criteria_evaluation: {},
+      });
+    }
+
+    if ((i+1) % 5 === 0) saveState();
+  }
+
+  saveState();
+  hideLoading();
+  renderNav(); renderPage();
+}
+
+async function screenFulltext() {
+  const title = document.getElementById('ft-title').value;
+  const text = document.getElementById('ft-text').value;
+  if (!title || !text) { alert('Please provide both title and full text.'); return; }
+
+  const inc = APP.project.criteria.inclusion;
+  const exclusionStr = (APP.project.criteria.exclusion || []).join('; ') || 'None specified';
+
+  showLoading('Screening full text...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: 'You are an expert systematic review screener conducting full-text screening. Carefully evaluate the complete manuscript against the inclusion criteria. Be thorough and provide detailed reasoning.' },
+      { role: 'user', content: `Evaluate this full-text manuscript for final inclusion.\n\nResearch Question: ${APP.project.researchQuestion}\n\nInclusion Criteria:\n- Population: ${inc.population}\n- Intervention: ${inc.intervention}\n- Comparison: ${inc.comparison}\n- Outcome: ${inc.outcome}\n- Study Design: ${inc.study_design}\n\nExclusion criteria: ${exclusionStr}\n\nFull-Text Content:\n${truncate(text, 50000)}\n\nRespond in JSON:\n{"decision":"included"/"excluded","reason":"detailed explanation","reason_category":"wrong_population/wrong_intervention/wrong_comparator/wrong_outcome/wrong_study_design/other/meets_criteria","confidence":0.0-1.0,"criteria_evaluation":{"population":{"met":true/false,"notes":"..."},"intervention":{"met":true/false,"notes":"..."},"comparison":{"met":true/false,"notes":"..."},"outcome":{"met":true/false,"notes":"..."},"study_design":{"met":true/false,"notes":"..."}}}` }
+    ], { jsonMode: true, maxTokens: 500, temperature: 0.3 });
+
+    const data = parseLLMJson(resp.content);
+    APP.fulltextResults.push({
+      title, decision: data?.decision || 'included',
+      reason: data?.reason || '', confidence: data?.confidence ?? 0.5,
+      reason_category: data?.reason_category || 'other',
+      criteria_evaluation: data?.criteria_evaluation || {},
+    });
+    saveState();
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderNav(); renderPage();
+}
+
+function exportFulltext() {
+  downloadCSV(APP.fulltextResults.map(r => ({
+    Title: r.title, Decision: r.decision, Reason: r.reason,
+    Category: r.reason_category, Confidence: r.confidence,
+  })), 'fulltext_screening.csv');
+}
+
+// ============================================================================
+// PAGE 4: FEEDBACK REVIEW
+// ============================================================================
+function renderFeedbackReview(el) {
+  const lowConf = APP.screeningResults.filter(r => r.decision === 'excluded' && r.confidence < 0.8);
+
+  el.innerHTML = `
+    <h2 class="page-title">Feedback Review</h2>
+    <p class="page-subtitle">Re-review low-confidence exclusions to catch potential missed studies</p>
+
+    <div class="alert alert-info">${lowConf.length} studies excluded with low confidence (&lt;80%) available for re-review</div>
+
+    ${lowConf.length > 0 ? `
+    <div class="card">
+      <h3>Low-Confidence Exclusions</h3>
+      <p class="help-text">These studies were excluded but with low confidence. AI will re-review them with a more inclusive mindset.</p>
+      <button class="btn btn-primary" onclick="startFeedbackReview()" ${!APP.apiKey?'disabled':''}>Re-review ${lowConf.length} Studies</button>
+    </div>
+    ` : `
+    <div class="card">
+      <p>No low-confidence exclusions to review. All exclusion decisions had high confidence.</p>
+    </div>
+    `}
+
+    <div class="card">
+      <h3>Manual Override</h3>
+      <p class="help-text">You can manually change any screening decision below.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Decision</th><th>Confidence</th><th>Action</th></tr></thead>
+          <tbody>
+            ${APP.screeningResults.filter(r => r.decision === 'excluded').map((r, i) => `
+              <tr>
+                <td>${truncate(r.title, 50)}</td>
+                <td><span class="badge badge-danger">excluded</span></td>
+                <td>${(r.confidence*100).toFixed(0)}%</td>
+                <td><button class="btn btn-sm btn-success" onclick="overrideDecision(${r.index})">Include</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+async function startFeedbackReview() {
+  const lowConf = APP.screeningResults.filter(r => r.decision === 'excluded' && r.confidence < 0.8);
+  const inc = APP.project.criteria.inclusion;
+
+  showLoading(`Re-reviewing ${lowConf.length} studies...`);
+
+  for (let i = 0; i < lowConf.length; i++) {
+    const r = lowConf[i];
+    updateLoading(`Re-reviewing ${i+1} of ${lowConf.length}...`);
+
+    try {
+      const resp = await callLLM([
+        { role: 'system', content: 'You are an expert systematic review methodologist reviewing previously excluded studies. Reconsider exclusion decisions with an inclusive mindset.' },
+        { role: 'user', content: `This study was excluded with low confidence.\n\nOriginal Reason: ${r.reason}\nOriginal Confidence: ${r.confidence}\n\nResearch Question: ${APP.project.researchQuestion}\n\nCriteria:\nP: ${inc.population}\nI: ${inc.intervention}\nC: ${inc.comparison}\nO: ${inc.outcome}\nDesign: ${inc.study_design}\n\nTitle: ${r.title}\nAbstract: ${r.abstract || 'Not available'}\n\nReconsider. Could secondary outcomes be relevant? Subgroup analyses? Methodological insights?\n\nRespond in JSON:\n{"reconsider":true/false,"rationale":"explanation","new_confidence":0.0-1.0}` }
+      ], { jsonMode: true, maxTokens: 200, temperature: 0.3 });
+
+      const data = parseLLMJson(resp.content);
+      if (data?.reconsider) {
+        // Find and update the original result
+        const idx = APP.screeningResults.findIndex(sr => sr.index === r.index);
+        if (idx >= 0) {
+          APP.screeningResults[idx].decision = 'included';
+          APP.screeningResults[idx].reason = 'Reconsidered: ' + (data.rationale || '');
+          APP.screeningResults[idx].confidence = data.new_confidence || 0.7;
+        }
+      }
+    } catch(e) { console.error('Feedback review error:', e); }
+  }
+
+  saveState();
+  hideLoading();
+  renderNav(); renderPage();
+}
+
+function overrideDecision(studyIndex) {
+  const idx = APP.screeningResults.findIndex(r => r.index === studyIndex);
+  if (idx >= 0) {
+    APP.screeningResults[idx].decision = 'included';
+    APP.screeningResults[idx].reason = 'Manual override - included by reviewer';
+    APP.screeningResults[idx].confidence = 1.0;
+    saveState(); renderPage();
+  }
+}
+
+// ============================================================================
+// PAGE 5: EXTRACTION SETUP
+// ============================================================================
+function renderExtractionSetup(el) {
+  el.innerHTML = `
+    <h2 class="page-title">Data Extraction Setup</h2>
+    <p class="page-subtitle">Configure which data fields to extract from included studies</p>
+
+    <div class="card">
+      <h3>AI-Recommended Fields</h3>
+      <p class="help-text">Let AI suggest extraction fields based on your research question.</p>
+      <button class="btn btn-primary" onclick="recommendFields()" ${!APP.apiKey?'disabled':''}>Get AI Recommendations</button>
+    </div>
+
+    <div class="card">
+      <h3>Extraction Fields</h3>
+      <div class="help-text">Define the fields you want to extract from each study.</div>
+
+      <div class="field-row" style="font-weight:600;margin-bottom:8px">
+        <div>Field Name</div>
+        <div>Description</div>
+        <div>Type</div>
+        <div></div>
+      </div>
+
+      <div id="fields-list">
+        ${APP.extractionFields.map((f, i) => `
+          <div class="field-row">
+            <input type="text" value="${f.name}" onchange="updateField(${i},'name',this.value)" placeholder="Field name">
+            <input type="text" value="${f.description}" onchange="updateField(${i},'description',this.value)" placeholder="What to extract">
+            <select onchange="updateField(${i},'type',this.value)">
+              <option value="text" ${f.type==='text'?'selected':''}>Text</option>
+              <option value="numeric" ${f.type==='numeric'?'selected':''}>Numeric</option>
+              <option value="categorical" ${f.type==='categorical'?'selected':''}>Categorical</option>
+            </select>
+            <button class="criteria-remove" onclick="removeField(${i})">×</button>
+          </div>
+        `).join('')}
+      </div>
+
+      <button class="btn btn-sm btn-outline" onclick="addField()" style="margin-top:8px">+ Add Field</button>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveFields()">Save Fields</button>
+      </div>
+    </div>
+  `;
+}
+
+async function recommendFields() {
+  if (!APP.project?.researchQuestion) { alert('Set up your research question first.'); return; }
+  showLoading('Getting AI recommendations...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: 'You are an expert in systematic review data extraction. Recommend appropriate data fields to extract.' },
+      { role: 'user', content: `Based on this research question, recommend data fields to extract:\n\nResearch Question: ${APP.project.researchQuestion}\n\nRespond in JSON:\n{"recommended_fields":[{"field_name":"name","description":"what to extract","field_type":"text/numeric/categorical","category":"study_characteristics/population/intervention/outcomes/results/quality"}]}` }
+    ], { jsonMode: true, maxTokens: 1500 });
+
+    const data = parseLLMJson(resp.content);
+    if (data?.recommended_fields) {
+      APP.extractionFields = data.recommended_fields.map(f => ({
+        name: f.field_name,
+        description: f.description,
+        type: f.field_type || 'text',
+        category: f.category || 'other',
+      }));
+      saveState();
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderPage();
+}
+
+function addField() {
+  APP.extractionFields.push({ name: '', description: '', type: 'text', category: 'other' });
+  renderPage();
+}
+function removeField(i) { APP.extractionFields.splice(i, 1); renderPage(); }
+function updateField(i, key, val) { APP.extractionFields[i][key] = val; }
+function saveFields() { saveState(); alert('Fields saved!'); renderNav(); }
+
+// ============================================================================
+// PAGE 6: DATA EXTRACTION
+// ============================================================================
+function renderDataExtraction(el) {
+  const pdfsWithText = (APP.processedPDFs || []).filter(p => p.text && p.text.length > 100);
+  const unextracted = pdfsWithText.filter(p => !APP.extractions.find(e => e.study === p.title));
+
+  el.innerHTML = `
+    <h2 class="page-title">Data Extraction</h2>
+    <p class="page-subtitle">Extract structured data from included study texts using AI</p>
+
+    <div class="alert alert-info">${APP.extractionFields.length} extraction fields configured</div>
+
+    ${pdfsWithText.length > 0 ? `
+    <div class="card">
+      <h3>Extract from Uploaded PDFs</h3>
+      <p class="help-text">${pdfsWithText.length} PDF(s) with extracted text available. ${unextracted.length} not yet processed.</p>
+      ${unextracted.length > 0 ? `
+        <button class="btn btn-success" onclick="batchExtractData()" ${!APP.apiKey?'disabled':''}>Extract from ${unextracted.length} PDF(s)</button>
+      ` : `<div class="alert alert-success">All uploaded PDFs have been processed.</div>`}
+    </div>
+    ` : ''}
+
+    <div class="card">
+      <h3>Upload PDFs for Extraction</h3>
+      <div class="help-text">Upload PDF files to extract data from. Supports text-based and scanned PDFs (OCR).</div>
+      <div class="upload-area" onclick="document.getElementById('ext-pdf-upload').click()">
+        <input type="file" id="ext-pdf-upload" accept=".pdf,.txt" onchange="handleExtractionPDFUpload(event)" multiple>
+        <p style="font-size:1.2rem;margin-bottom:8px">📄</p>
+        <p>Click to upload PDF or text files</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Or Paste Text Manually</h3>
+      <p class="help-text">Paste the full text of a study to extract data from it.</p>
+      <div style="margin-bottom:12px">
+        <label>Study Title / ID</label>
+        <input type="text" id="ext-title" placeholder="Study identifier">
+      </div>
+      <div>
+        <label>Study Full Text</label>
+        <textarea id="ext-text" rows="10" placeholder="Paste the full text here..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="extractData()" ${!APP.apiKey?'disabled':''}>Extract Data</button>
+      </div>
+    </div>
+
+    ${APP.extractions.length > 0 ? `
+    <div class="card">
+      <h3>Extracted Data (${APP.extractions.length} studies)</h3>
+      <button class="btn btn-sm btn-outline" onclick="exportExtractions()" style="margin-bottom:12px">Export CSV</button>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Study</th>${APP.extractionFields.map(f => `<th>${f.name}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${APP.extractions.map(ext => `
+              <tr>
+                <td>${truncate(ext.study, 30)}</td>
+                ${APP.extractionFields.map(f => `<td title="${(ext.data[f.name]?.source_quote || '').replace(/"/g,'&quot;')}">${ext.data[f.name]?.value || '<span style="color:var(--text-muted)">NR</span>'}</td>`).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+async function extractData() {
+  const title = document.getElementById('ext-title').value;
+  const text = document.getElementById('ext-text').value;
+  if (!title || !text) { alert('Provide study title and text.'); return; }
+
+  const fieldsDesc = APP.extractionFields.map(f => `- ${f.name}: ${f.description}${f.type === 'numeric' ? ' (extract numeric value only)' : ''}`).join('\n');
+
+  showLoading('Extracting data...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: "You are an expert systematic review data extractor. Extract specific data fields from research manuscripts accurately. If information is not reported, indicate 'NR'." },
+      { role: 'user', content: `Extract the following data fields from this study:\n\nFields to extract:\n${fieldsDesc}\n\nStudy Text:\n${truncate(text, 50000)}\n\nRespond in JSON:\n{"extractions":{"field_name":{"value":"extracted value or NR","source_quote":"brief quote","notes":"any notes"}},"extraction_quality":{"completeness":0.0-1.0,"fields_not_reported":["list"]}}` }
+    ], { jsonMode: true, maxTokens: 2000, temperature: 0.2 });
+
+    const data = parseLLMJson(resp.content);
+    if (data) {
+      APP.extractions.push({ study: title, data: data.extractions || {}, quality: data.extraction_quality });
+      saveState();
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderNav(); renderPage();
+}
+
+async function handleExtractionPDFUpload(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  showLoading(`Processing ${files.length} file(s)...`);
+  const results = await processMultiplePDFs(files, (i, total, name, status, msg) => {
+    updateLoading(`File ${i+1} of ${total}: ${name}`, msg || '');
+  });
+
+  for (const r of results) {
+    const existing = APP.processedPDFs.findIndex(p => p.filename === r.filename);
+    if (existing >= 0) APP.processedPDFs[existing] = r;
+    else APP.processedPDFs.push(r);
+  }
+
+  const ok = results.filter(r => r.text && r.text.length > 100).length;
+  const fail = results.length - ok;
+  hideLoading();
+  alert(`${ok} file(s) ready for extraction.${fail ? ` ${fail} failed.` : ''}`);
+  renderPage();
+}
+
+async function batchExtractData() {
+  if (!APP.extractionFields.length) { alert('Set up extraction fields first.'); return; }
+  if (!APP.apiKey) { alert('Configure your API key.'); return; }
+
+  const pdfsWithText = APP.processedPDFs.filter(p => p.text && p.text.length > 100);
+  const unextracted = pdfsWithText.filter(p => !APP.extractions.find(e => e.study === p.title));
+
+  const fieldsDesc = APP.extractionFields.map(f => `- ${f.name}: ${f.description}${f.type === 'numeric' ? ' (extract numeric value only)' : ''}`).join('\n');
+
+  showLoading(`Extracting data from ${unextracted.length} studies...`);
+
+  for (let i = 0; i < unextracted.length; i++) {
+    const pdf = unextracted[i];
+    updateLoading(`Extracting ${i+1} of ${unextracted.length}...`, truncate(pdf.title, 50));
+
+    try {
+      const resp = await callLLM([
+        { role: 'system', content: "You are an expert systematic review data extractor. Extract specific data fields from research manuscripts accurately. If information is not reported, indicate 'NR'." },
+        { role: 'user', content: `Extract the following data fields from this study:\n\nFields to extract:\n${fieldsDesc}\n\nStudy Text:\n${truncate(pdf.text, 50000)}\n\nRespond in JSON:\n{"extractions":{"field_name":{"value":"extracted value or NR","source_quote":"brief quote","notes":"any notes"}},"extraction_quality":{"completeness":0.0-1.0,"fields_not_reported":["list"]}}` }
+      ], { jsonMode: true, maxTokens: 2000, temperature: 0.2 });
+
+      const data = parseLLMJson(resp.content);
+      if (data) {
+        APP.extractions.push({ study: pdf.title, data: data.extractions || {}, quality: data.extraction_quality });
+      }
+    } catch(e) {
+      console.error(`Extraction failed for ${pdf.title}:`, e);
+    }
+
+    if ((i+1) % 5 === 0) saveState();
+  }
+
+  saveState();
+  hideLoading();
+  renderNav(); renderPage();
+}
+
+function exportExtractions() {
+  const rows = APP.extractions.map(ext => {
+    const row = { Study: ext.study };
+    APP.extractionFields.forEach(f => { row[f.name] = ext.data[f.name]?.value || 'NR'; });
+    return row;
+  });
+  downloadCSV(rows, 'data_extractions.csv');
+}
+
+// ============================================================================
+// PAGE 7: ROB SETUP
+// ============================================================================
+function renderRoBSetup(el) {
+  el.innerHTML = `
+    <h2 class="page-title">Risk of Bias Setup</h2>
+    <p class="page-subtitle">Select the Risk of Bias assessment tool</p>
+
+    <div class="card">
+      <h3>Select RoB Tool</h3>
+      <div class="help-text">Choose the appropriate tool based on your study designs.</div>
+      <select id="rob-tool" onchange="APP.robTool=this.value;saveState()" style="margin-bottom:16px">
+        <option value="rob_2" ${APP.robTool==='rob_2'?'selected':''}>RoB 2 (Cochrane) - Randomized Controlled Trials</option>
+        <option value="robins_i" ${APP.robTool==='robins_i'?'selected':''}>ROBINS-I - Non-randomized Studies of Interventions</option>
+        <option value="nos_cohort" ${APP.robTool==='nos_cohort'?'selected':''}>Newcastle-Ottawa Scale - Cohort Studies</option>
+        <option value="nos_case_control" ${APP.robTool==='nos_case_control'?'selected':''}>Newcastle-Ottawa Scale - Case-Control Studies</option>
+        <option value="quadas_2" ${APP.robTool==='quadas_2'?'selected':''}>QUADAS-2 - Diagnostic Accuracy Studies</option>
+      </select>
+
+      <div class="alert alert-info">
+        <strong>${getRoBToolInfo(APP.robTool).name}</strong><br>
+        ${getRoBToolInfo(APP.robTool).description}
+      </div>
+
+      <h4 style="margin-top:16px">Domains assessed:</h4>
+      <ul style="margin-left:20px;margin-top:8px">
+        ${getRoBToolInfo(APP.robTool).domains.map(d => `<li style="margin-bottom:4px">${d}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+function getRoBToolInfo(tool) {
+  const tools = {
+    rob_2: {
+      name: 'Cochrane Risk of Bias Tool 2 (RoB 2)',
+      description: 'For randomized controlled trials. Assesses 5 domains with signaling questions.',
+      domains: ['Randomization process', 'Deviations from intended interventions', 'Missing outcome data', 'Measurement of the outcome', 'Selection of the reported result'],
+    },
+    robins_i: {
+      name: 'ROBINS-I',
+      description: 'For non-randomized studies of interventions. Uses judgment levels from Low to Critical.',
+      domains: ['Confounding', 'Selection of participants', 'Classification of interventions', 'Deviations from intended interventions', 'Missing data', 'Measurement of outcomes', 'Selection of the reported result'],
+    },
+    nos_cohort: {
+      name: 'Newcastle-Ottawa Scale (Cohort)',
+      description: 'Star-based scoring system for cohort studies (max 9 stars).',
+      domains: ['Selection: Representativeness', 'Selection: Non-exposed cohort', 'Selection: Ascertainment', 'Selection: Outcome not present at start', 'Comparability', 'Outcome: Assessment', 'Outcome: Follow-up length', 'Outcome: Adequacy of follow-up'],
+    },
+    nos_case_control: {
+      name: 'Newcastle-Ottawa Scale (Case-Control)',
+      description: 'Star-based scoring system for case-control studies.',
+      domains: ['Selection: Case definition', 'Selection: Representativeness', 'Selection: Control selection', 'Selection: Control definition', 'Comparability', 'Exposure: Ascertainment', 'Exposure: Same method', 'Exposure: Non-response rate'],
+    },
+    quadas_2: {
+      name: 'QUADAS-2',
+      description: 'For diagnostic accuracy studies. Assesses risk of bias and applicability concerns.',
+      domains: ['Patient Selection', 'Index Test', 'Reference Standard', 'Flow and Timing'],
+    },
+  };
+  return tools[tool] || tools.rob_2;
+}
+
+// ============================================================================
+// PAGE 8: RISK OF BIAS
+// ============================================================================
+function renderRiskOfBias(el) {
+  const toolInfo = getRoBToolInfo(APP.robTool);
+
+  el.innerHTML = `
+    <h2 class="page-title">Risk of Bias Assessment</h2>
+    <p class="page-subtitle">AI-assisted RoB assessment using ${toolInfo.name}</p>
+
+    ${(() => {
+      const pdfsWithText = (APP.processedPDFs || []).filter(p => p.text && p.text.length > 100);
+      const unassessed = pdfsWithText.filter(p => !APP.robAssessments.find(a => a.study === p.title));
+      if (unassessed.length > 0) return `
+    <div class="card">
+      <h3>Batch Assess from Uploaded PDFs</h3>
+      <p class="help-text">${unassessed.length} PDF(s) available for assessment.</p>
+      <button class="btn btn-success" onclick="batchAssessRoB()" ${!APP.apiKey?'disabled':''}>Assess ${unassessed.length} Studies</button>
+    </div>`;
+      return '';
+    })()}
+
+    <div class="card">
+      <h3>Upload PDF for Assessment</h3>
+      <div class="upload-area" onclick="document.getElementById('rob-pdf-upload').click()">
+        <input type="file" id="rob-pdf-upload" accept=".pdf,.txt" onchange="handleRoBPDFUpload(event)">
+        <p style="font-size:1.2rem;margin-bottom:8px">📄</p>
+        <p>Upload a PDF to assess</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Or Enter Study Details Manually</h3>
+      <p class="help-text">Paste study text for AI-assisted risk of bias assessment.</p>
+      <div class="card-grid">
+        <div>
+          <label>Study Title</label>
+          <input type="text" id="rob-title" placeholder="Study title">
+        </div>
+        <div>
+          <label>Authors / Year</label>
+          <input type="text" id="rob-authors" placeholder="e.g., Smith et al., 2023">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Study Text</label>
+        <textarea id="rob-text" rows="10" placeholder="Paste the full text or relevant methods/results sections..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="assessRoB()" ${!APP.apiKey?'disabled':''}>Assess Risk of Bias</button>
+      </div>
+    </div>
+
+    ${APP.robAssessments.length > 0 ? `
+    <div class="card">
+      <h3>Assessment Summary (${APP.robAssessments.length} studies)</h3>
+      <button class="btn btn-sm btn-outline" onclick="exportRoB()" style="margin-bottom:12px">Export CSV</button>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Study</th>
+              ${toolInfo.domains.map(d => `<th style="text-align:center;font-size:0.75rem;max-width:80px">${d}</th>`).join('')}
+              <th style="text-align:center">Overall</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${APP.robAssessments.map(a => `
+              <tr>
+                <td>${truncate(a.study, 30)}</td>
+                ${a.domains.map(d => `<td style="text-align:center"><div class="rob-cell ${getRoBClass(d.judgment)}" title="${d.judgment}: ${truncate(d.rationale, 100)}"></div></td>`).join('')}
+                <td style="text-align:center"><span class="badge ${getRoBBadgeClass(a.overall)}">${a.overall}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px;font-size:0.85rem">
+        <strong>Legend:</strong>
+        <span class="rob-cell rob-low" style="width:14px;height:14px;vertical-align:middle"></span> Low
+        <span class="rob-cell rob-some" style="width:14px;height:14px;vertical-align:middle;margin-left:10px"></span> Some Concerns
+        <span class="rob-cell rob-high" style="width:14px;height:14px;vertical-align:middle;margin-left:10px"></span> High
+        <span class="rob-cell rob-unclear" style="width:14px;height:14px;vertical-align:middle;margin-left:10px"></span> Unclear
+      </div>
+    </div>
+
+    ${APP.robAssessments.length > 0 ? `
+    <div class="card">
+      <h3>Detailed Assessment: ${APP.robAssessments[APP.robAssessments.length - 1].study}</h3>
+      ${APP.robAssessments[APP.robAssessments.length - 1].domains.map(d => `
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg);border-radius:6px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div class="rob-cell ${getRoBClass(d.judgment)}" style="width:20px;height:20px"></div>
+            <strong>${d.name}</strong>
+            <span class="badge ${getRoBBadgeClass(d.judgment)}">${d.judgment}</span>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-muted)">${d.rationale}</p>
+          ${d.quotes && d.quotes.length ? `<div style="font-size:0.8rem;margin-top:4px;font-style:italic;color:var(--text-muted)">"${d.quotes[0]}"</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    ` : ''}
+    ` : ''}
+  `;
+}
+
+function getRoBClass(judgment) {
+  const j = (judgment || '').toLowerCase();
+  if (j.includes('low')) return 'rob-low';
+  if (j.includes('some') || j.includes('moderate')) return 'rob-some';
+  if (j.includes('high') || j.includes('serious') || j.includes('critical')) return 'rob-high';
+  return 'rob-unclear';
+}
+
+function getRoBBadgeClass(judgment) {
+  const j = (judgment || '').toLowerCase();
+  if (j.includes('low')) return 'badge-success';
+  if (j.includes('some') || j.includes('moderate')) return 'badge-warning';
+  if (j.includes('high') || j.includes('serious') || j.includes('critical')) return 'badge-danger';
+  return 'badge-info';
+}
+
+async function assessRoB() {
+  const title = document.getElementById('rob-title').value;
+  const authors = document.getElementById('rob-authors').value;
+  const text = document.getElementById('rob-text').value;
+  if (!title || !text) { alert('Provide study title and text.'); return; }
+
+  const toolInfo = getRoBToolInfo(APP.robTool);
+  const domainsDesc = toolInfo.domains.map((d, i) => `${i+1}. ${d}`).join('\n');
+
+  // Get tool-specific guidance
+  const guidanceMap = {
+    rob_2: 'Use RoB 2 judgment levels: Low Risk, Some Concerns, High Risk. Overall: High if ANY domain is High, Some Concerns if ANY domain has Some Concerns, Low if ALL domains are Low.',
+    robins_i: 'Use ROBINS-I judgment levels: Low, Moderate, Serious, Critical. Overall follows worst domain.',
+    nos_cohort: 'Use Newcastle-Ottawa categories. Overall: Low risk (7-9 stars), Some concerns (4-6 stars), High risk (0-3 stars).',
+    nos_case_control: 'Use Newcastle-Ottawa categories. Overall: Low risk (7-9 stars), Some concerns (4-6 stars), High risk (0-3 stars).',
+    quadas_2: 'Use QUADAS-2 levels: Low, High, Unclear. Overall: High if ANY domain High, Unclear if ANY Unclear, Low if ALL Low.',
+  };
+
+  showLoading('Assessing risk of bias...');
+  try {
+    const resp = await callLLM([
+      { role: 'system', content: `You are an expert systematic review methodologist conducting Risk of Bias assessments. Base all judgments on explicit information in the manuscript. Provide verbatim quotes as evidence. ${guidanceMap[APP.robTool] || ''}` },
+      { role: 'user', content: `Assess the risk of bias for this study using ${toolInfo.name}.\n\nStudy: ${title}\nAuthors: ${authors}\n\nStudy Text:\n${truncate(text, 50000)}\n\nDomains to Assess:\n${domainsDesc}\n\nRespond in JSON:\n{"domain_assessments":{"domain_name":{"judgment":"low/some_concerns/high/moderate/serious/critical","rationale":"explanation","supporting_quotes":["quotes"]}},"overall_judgment":"low/some_concerns/high","overall_rationale":"summary"}` }
+    ], { jsonMode: true, maxTokens: 3000, temperature: 0.2 });
+
+    const data = parseLLMJson(resp.content);
+    if (data) {
+      const assessment = {
+        study: title,
+        authors,
+        tool: APP.robTool,
+        overall: data.overall_judgment || 'unclear',
+        overall_rationale: data.overall_rationale || '',
+        domains: toolInfo.domains.map(dName => {
+          const da = data.domain_assessments?.[dName] || {};
+          return {
+            name: dName,
+            judgment: da.judgment || 'unclear',
+            rationale: da.rationale || '',
+            quotes: da.supporting_quotes || [],
+          };
+        }),
+      };
+      APP.robAssessments.push(assessment);
+      saveState();
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+  hideLoading(); renderNav(); renderPage();
+}
+
+async function handleRoBPDFUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  showLoading(`Processing ${file.name}...`);
+  const results = await processMultiplePDFs([file], (i, total, name, status, msg) => {
+    updateLoading(`${name}: ${msg || status}`, '');
+  });
+
+  hideLoading();
+
+  if (results.length && results[0].text) {
+    const r = results[0];
+    // Add to processedPDFs
+    const existing = APP.processedPDFs.findIndex(p => p.filename === r.filename);
+    if (existing >= 0) APP.processedPDFs[existing] = r;
+    else APP.processedPDFs.push(r);
+
+    // Pre-fill the form
+    renderPage();
+    // After render, fill in the fields
+    setTimeout(() => {
+      const titleEl = document.getElementById('rob-title');
+      const textEl = document.getElementById('rob-text');
+      if (titleEl) titleEl.value = r.title;
+      if (textEl) textEl.value = r.text;
+    }, 50);
+
+    alert(`Text extracted (${r.chars} chars, method: ${r.method}). Review and click "Assess Risk of Bias".`);
+  } else {
+    alert('Failed to extract text from this PDF. Try uploading as .txt instead.');
+  }
+}
+
+async function batchAssessRoB() {
+  if (!APP.apiKey) { alert('Configure your API key.'); return; }
+
+  const pdfsWithText = APP.processedPDFs.filter(p => p.text && p.text.length > 100);
+  const unassessed = pdfsWithText.filter(p => !APP.robAssessments.find(a => a.study === p.title));
+  const toolInfo = getRoBToolInfo(APP.robTool);
+  const domainsDesc = toolInfo.domains.map((d, i) => `${i+1}. ${d}`).join('\n');
+
+  const guidanceMap = {
+    rob_2: 'Use RoB 2 judgment levels: Low Risk, Some Concerns, High Risk. Overall: High if ANY domain is High, Some Concerns if ANY domain has Some Concerns, Low if ALL domains are Low.',
+    robins_i: 'Use ROBINS-I judgment levels: Low, Moderate, Serious, Critical. Overall follows worst domain.',
+    nos_cohort: 'Use Newcastle-Ottawa categories. Overall: Low risk (7-9 stars), Some concerns (4-6 stars), High risk (0-3 stars).',
+    nos_case_control: 'Use Newcastle-Ottawa categories. Overall: Low risk (7-9 stars), Some concerns (4-6 stars), High risk (0-3 stars).',
+    quadas_2: 'Use QUADAS-2 levels: Low, High, Unclear. Overall: High if ANY domain High, Unclear if ANY Unclear, Low if ALL Low.',
+  };
+
+  showLoading(`Assessing ${unassessed.length} studies...`);
+
+  for (let i = 0; i < unassessed.length; i++) {
+    const pdf = unassessed[i];
+    updateLoading(`Assessing ${i+1} of ${unassessed.length}...`, truncate(pdf.title, 50));
+
+    try {
+      const resp = await callLLM([
+        { role: 'system', content: `You are an expert systematic review methodologist conducting Risk of Bias assessments. Base all judgments on explicit information in the manuscript. Provide verbatim quotes as evidence. ${guidanceMap[APP.robTool] || ''}` },
+        { role: 'user', content: `Assess the risk of bias for this study using ${toolInfo.name}.\n\nStudy: ${pdf.title}\n\nStudy Text:\n${truncate(pdf.text, 50000)}\n\nDomains to Assess:\n${domainsDesc}\n\nRespond in JSON:\n{"domain_assessments":{"domain_name":{"judgment":"low/some_concerns/high/moderate/serious/critical","rationale":"explanation","supporting_quotes":["quotes"]}},"overall_judgment":"low/some_concerns/high","overall_rationale":"summary"}` }
+      ], { jsonMode: true, maxTokens: 3000, temperature: 0.2 });
+
+      const data = parseLLMJson(resp.content);
+      if (data) {
+        APP.robAssessments.push({
+          study: pdf.title, authors: '', tool: APP.robTool,
+          overall: data.overall_judgment || 'unclear',
+          overall_rationale: data.overall_rationale || '',
+          domains: toolInfo.domains.map(dName => {
+            const da = data.domain_assessments?.[dName] || {};
+            return { name: dName, judgment: da.judgment || 'unclear', rationale: da.rationale || '', quotes: da.supporting_quotes || [] };
+          }),
+        });
+      }
+    } catch(e) { console.error(`RoB failed for ${pdf.title}:`, e); }
+
+    if ((i+1) % 3 === 0) saveState();
+  }
+
+  saveState();
+  hideLoading();
+  renderNav(); renderPage();
+}
+
+function exportRoB() {
+  const rows = APP.robAssessments.map(a => {
+    const row = { Study: a.study, Authors: a.authors, Tool: a.tool, Overall: a.overall };
+    a.domains.forEach(d => { row[d.name] = d.judgment; row[d.name + ' - Rationale'] = d.rationale; });
+    return row;
+  });
+  downloadCSV(rows, 'risk_of_bias.csv');
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+loadState();
+renderNav();
+renderPage();
+</script>
+</body>
+</html>
