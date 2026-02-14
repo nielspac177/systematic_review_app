@@ -28,6 +28,7 @@ An LLM-powered systematic review platform that automates study screening, data e
 
 ### How to use
 
+0. Download the whole repository.
 1. Open `ReviewPyPer_Standalone.html` in any modern browser (Chrome, Firefox, Safari, Edge)
 2. Enter your **OpenAI** or **Anthropic** API key on the Setup page
 3. Follow the workflow: Setup > Search Strategy > Screening > Extraction > Risk of Bias
