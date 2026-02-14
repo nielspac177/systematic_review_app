@@ -1,4 +1,4 @@
-# ReviewPyPer - Systematic Review App
+# ReviewPyPer Plus - Systematic Review App
 
 An LLM-powered systematic review platform that automates study screening, data extraction, and risk of bias assessment following PRISMA 2020 guidelines.
 
